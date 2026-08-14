@@ -857,6 +857,30 @@ export default function AdminPanel() {
             </section>
 
             <section className="cyber-card p-5">
+              <h2 className="section-label">评论与真人验证</h2>
+              <div className="space-y-4">
+                <TextField
+                  id="comments-repo"
+                  label="Giscus 评论仓库（owner/repo，需公开且已装 Giscus App）"
+                  value={state.settings.commentsRepo ?? ''}
+                  onChange={(v) => updateSettings({ commentsRepo: v })}
+                  placeholder="vincent/portfolio-comments"
+                />
+                <TextField
+                  id="turnstile-key"
+                  label="Cloudflare Turnstile 站点密钥（留空则后台登录不做真人验证）"
+                  value={state.settings.turnstileSiteKey ?? ''}
+                  onChange={(v) => updateSettings({ turnstileSiteKey: v })}
+                  placeholder="0x4AAAAAAA..."
+                />
+                <p className="font-body text-xs text-muted">
+                  填好评论仓库后，每篇文章底部会出现 Giscus 评论区；填好 Turnstile 站点密钥后，
+                  后台登录会要求先过真人验证（私钥需通过 wrangler secret 注入到 Pages Function）。
+                </p>
+              </div>
+            </section>
+
+            <section className="cyber-card p-5">
               <h2 className="section-label">后台访问口令</h2>
               <p className="mb-4 font-body text-sm text-muted">
                 {state.settings.adminPassHash
