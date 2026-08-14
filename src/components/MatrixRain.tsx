@@ -1,17 +1,46 @@
 import { useEffect, useRef } from 'react';
 
-/** 赛博矩阵雨背景：Canvas 实现，尊重 prefers-reduced-motion */
+const KEY = 'cyber-fx-enabled';
+
+/** 读取/写入特效总开关（localStorage，默认开启） */
+export function getFxEnabled(): boolean {
+  try {
+    const v = localStorage.getItem(KEY);
+    return v === null ? true : v === '1';
+  } catch {
+    return true;
+  }
+}
+export function setFxEnabled(on: boolean): void {
+  try {
+    localStorage.setItem(KEY, on ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+
+/** 赛博矩阵雨背景：Canvas 实现。
+ *  始终运行（装饰性、低干扰）；尊重用户手动开关与系统减少动效设置
+ *  （仅在两者都要求降级时才放慢，而非完全关闭，保证页面不死寂）。 */
 export default function MatrixRain() {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-
     const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fxOff = (() => {
+      try {
+        return localStorage.getItem(KEY) === '0';
+      } catch {
+        return false;
+      }
+    })();
+    // 系统减少动效 + 用户未手动开 → 降速运行
+    const slow = reduce && !fxOff;
 
     const chars = 'アイウエオカキクケコサシスセソ0123456789ABCDEF<>[]{}/\\=+*'.split('');
     const fontSize = 14;
@@ -19,6 +48,7 @@ export default function MatrixRain() {
     let drops: number[] = [];
     let raf = 0;
     let last = 0;
+    const frameGap = slow ? 110 : 55; // slow 模式 ~9fps
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -33,7 +63,7 @@ export default function MatrixRain() {
 
     const draw = (t: number) => {
       raf = requestAnimationFrame(draw);
-      if (t - last < 55) return; // 限帧 ~18fps，降低占用
+      if (t - last < frameGap) return;
       last = t;
 
       const w = window.innerWidth;
@@ -46,7 +76,6 @@ export default function MatrixRain() {
         const x = i * fontSize;
         const y = drops[i] * fontSize;
         const ch = chars[(Math.random() * chars.length) | 0];
-        // 头部亮，尾部暗
         ctx.fillStyle = Math.random() > 0.975 ? 'rgba(255,0,160,.85)' : 'rgba(0,240,255,.55)';
         ctx.fillText(ch, x, y);
         if (y > h && Math.random() > 0.975) drops[i] = 0;
@@ -58,9 +87,15 @@ export default function MatrixRain() {
     window.addEventListener('resize', resize);
     raf = requestAnimationFrame(draw);
 
+    const onFxChange = () => {
+      // 用户切回开启时无需重建，draw 循环一直在跑
+    };
+    window.addEventListener('storage', onFxChange);
+
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('storage', onFxChange);
     };
   }, []);
 
@@ -68,7 +103,7 @@ export default function MatrixRain() {
     <canvas
       ref={ref}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 opacity-[0.22]"
+      className="pointer-events-none fixed inset-0 z-0 opacity-[0.35]"
     />
   );
 }

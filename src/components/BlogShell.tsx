@@ -3,6 +3,7 @@ import Nav from './Nav';
 import MatrixRain from './MatrixRain';
 import CursorGlow from './CursorGlow';
 import ScrollProgress from './ScrollProgress';
+import FxToggle from './FxToggle';
 import { useSite } from '../hooks/useSite';
 
 /** 博客页面的公共外壳：与前台保持同一套氛围 */
@@ -28,6 +29,8 @@ export default function BlogShell({ children }: { children: ReactNode }) {
       <Nav />
 
       <main className="relative z-10 pt-16">{children}</main>
+
+      <FxToggle />
 
       <footer className="relative z-10 border-t border-line py-8 text-center font-mono text-xs text-muted">
         <p>

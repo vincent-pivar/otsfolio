@@ -10,6 +10,7 @@ import LatestPosts from './LatestPosts';
 import MatrixRain from './MatrixRain';
 import CursorGlow from './CursorGlow';
 import ScrollProgress from './ScrollProgress';
+import FxToggle from './FxToggle';
 import { useReveal, revealClass } from '../hooks/useReveal';
 import { useSite } from '../hooks/useSite';
 
@@ -64,6 +65,8 @@ export default function SiteView() {
           <Contact />
         </Reveal>
       </main>
+
+      <FxToggle />
 
       <footer className="relative z-10 border-t border-line py-8 text-center font-mono text-xs text-muted">
         <p>

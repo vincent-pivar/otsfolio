@@ -1,13 +1,23 @@
 import { useEffect, useRef } from 'react';
 
-/** 鼠标跟随霓虹光斑：仅指针设备启用，用 rAF + transform 保证性能 */
+/** 鼠标跟随霓虹光斑：仅指针设备启用，用 rAF + transform 保证性能。
+ *  默认开启；用户通过右下角 FX 开关可关闭。系统 reduce-motion 下降速但不关闭。 */
 export default function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fine = window.matchMedia('(pointer: fine)').matches;
+    if (!fine) return;
+
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!fine || reduce) return;
+    const fxOff = () => {
+      try {
+        return localStorage.getItem('cyber-fx-enabled') === '0';
+      } catch {
+        return false;
+      }
+    };
+    if (reduce && fxOff()) return;
 
     const el = ref.current;
     if (!el) return;
@@ -17,6 +27,7 @@ export default function CursorGlow() {
     let cx = tx;
     let cy = ty;
     let raf = 0;
+    const ease = reduce ? 0.04 : 0.12;
 
     const onMove = (e: PointerEvent) => {
       tx = e.clientX;
@@ -25,19 +36,23 @@ export default function CursorGlow() {
 
     const loop = () => {
       raf = requestAnimationFrame(loop);
-      // 缓动跟随，产生拖尾感
-      cx += (tx - cx) * 0.12;
-      cy += (ty - cy) * 0.12;
+      cx += (tx - cx) * ease;
+      cy += (ty - cy) * ease;
       el.style.transform = `translate3d(${cx - 160}px, ${cy - 160}px, 0)`;
     };
 
-    el.style.opacity = '1';
+    const apply = () => {
+      el.style.opacity = fxOff() ? '0' : '1';
+    };
+    apply();
     window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('fx-change', apply);
     raf = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('fx-change', apply);
     };
   }, []);
 
