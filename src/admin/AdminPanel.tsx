@@ -688,6 +688,22 @@ export default function AdminPanel() {
                       发布
                     </label>
 
+                    <label className="flex items-center gap-2 font-mono text-xs text-muted">
+                      作者
+                      <select
+                        value={post.author ?? 'hermes'}
+                        onChange={(e) =>
+                          updatePost(post.id, {
+                            author: e.target.value as 'hermes' | 'vincent',
+                          })
+                        }
+                        className="border border-line bg-transparent px-2 py-1 font-mono text-xs text-slate-200"
+                      >
+                        <option value="hermes">Hermes 协作</option>
+                        <option value="vincent">我的文章</option>
+                      </select>
+                    </label>
+
                     <button
                       type="button"
                       onClick={() => removePost(post.id)}

@@ -85,9 +85,24 @@ export const projects: Project[] = [
       '排行榜与昵称持久化',
       '部署于 Cloudflare 边缘网络，零服务器成本',
     ],
-    link: 'https://question-17e.pages.dev',
+    link: 'https://question.otscup.com',
     status: '已上线',
     accent: 'magenta',
+  },
+  {
+    name: '赛博朋克作品集',
+    subtitle: '本站 · 边缘全栈个人站',
+    desc:
+      '你正在看的这个站点。React + Vite + Cloudflare Pages 构建，含博客系统与 AI 协作发布。内容存 D1、图片存 R2，零服务器成本；博客由 Hermes 协助维护。',
+    tags: ['React', 'Cloudflare Pages', 'D1 / R2', 'Tailwind', 'Markdown'],
+    highlights: [
+      '赛博朋克视觉：矩阵雨 + 霓虹辉光 + 光标跟随',
+      '博客系统：Markdown 编辑、XSS 防护、Giscus 评论',
+      '内容云端化：D1 存储 + R2 图床，多端一致',
+    ],
+    link: 'https://www.otscup.com',
+    status: '已上线',
+    accent: 'cyan',
   },
 ];
 

@@ -61,6 +61,8 @@ export type Post = {
   published: boolean;
   /** 封面图：本地为 dataURL，云端为 R2 地址 */
   cover?: string;
+  /** 作者：'hermes' 由 AI 协作发布，'vincent' 由站长本人撰写 */
+  author?: 'hermes' | 'vincent';
 };
 
 /** 站点设置 */

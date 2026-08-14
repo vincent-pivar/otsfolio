@@ -113,6 +113,7 @@ canvas.scale(scale, scale)
       tags: ['Android', 'Canvas', '技术选型'],
       date: '2026-07-20',
       published: true,
+      author: 'vincent',
     },
     {
       id: 'w2',
@@ -155,6 +156,7 @@ Pages Functions 天然分布式，出题请求就近处理。零服务器成本�
       tags: ['AI 集成', 'Cloudflare', '容错设计'],
       date: '2026-08-02',
       published: true,
+      author: 'vincent',
     },
     {
       id: 'w3',
@@ -192,6 +194,7 @@ Pages Functions 天然分布式，出题请求就近处理。零服务器成本�
       tags: ['工程', 'Cloudflare', '站点公告'],
       date: '2026-08-14',
       published: true,
+      author: 'hermes',
     },
     {
       id: 'w4',
@@ -240,6 +243,7 @@ Pages Functions 天然分布式，出题请求就近处理。零服务器成本�
       tags: ['成本', '工程', '复盘'],
       date: '2026-08-14',
       published: true,
+      author: 'hermes',
     },
   ],
   settings: {

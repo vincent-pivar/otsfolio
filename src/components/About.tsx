@@ -1,13 +1,15 @@
 import { useSite } from '../hooks/useSite';
 
-const stats = [
-  { value: '2+', label: '上线 / 在研项目' },
-  { value: '4', label: '技术领域' },
-  { value: '100%', label: '独立交付' },
-];
-
 export default function About() {
-  const { profile } = useSite();
+  const { profile, projects, posts, skills } = useSite();
+  const onlineCount = projects.filter((p) => p.status === '已上线').length;
+  const devCount = projects.filter((p) => p.status === '开发中').length;
+  const skillCount = skills.reduce((n, g) => n + g.items.length, 0);
+  const stats = [
+    { value: `${onlineCount + devCount}`, label: `上线 ${onlineCount} / 在研 ${devCount} 项目` },
+    { value: `${posts.length}`, label: '博客文章' },
+    { value: `${skillCount}`, label: '技术技能点' },
+  ];
   return (
     <section id="about" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 关于我</p>

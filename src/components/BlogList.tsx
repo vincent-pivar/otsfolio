@@ -14,6 +14,13 @@ export default function BlogList() {
     [posts],
   );
 
+  // 作者分离：默认显示 Hermes（AI 协作）内容，点击「我的文章」才显示 Vincent 本人撰写
+  const [authorView, setAuthorView] = useState<'hermes' | 'vincent'>('hermes');
+  const visibleByAuthor = useMemo(
+    () => all.filter((p) => (p.author ?? 'hermes') === authorView),
+    [all, authorView],
+  );
+
   const categories = useMemo(() => {
     const map = new Map<string, number>();
     all.forEach((p) => p.tags.forEach((t) => map.set(t, (map.get(t) || 0) + 1)));
@@ -26,7 +33,7 @@ export default function BlogList() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return all.filter((p) => {
+    return visibleByAuthor.filter((p) => {
       const inCat = !cat || p.tags.includes(cat);
       const inQ =
         !q ||
@@ -35,7 +42,7 @@ export default function BlogList() {
         p.tags.some((t) => t.toLowerCase().includes(q));
       return inCat && inQ;
     });
-  }, [all, query, cat]);
+  }, [visibleByAuthor, query, cat]);
 
   const visible = filtered.slice(0, shown);
   const hasMore = shown < filtered.length;
@@ -50,6 +57,33 @@ export default function BlogList() {
       <p className="mt-4 max-w-xl font-body text-sm text-muted">
         记录技术探索与工程思考，在代码与文字之间寻找平衡。
       </p>
+
+      <div className="mt-6 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setAuthorView('hermes')}
+          className={
+            'border px-4 py-2 font-mono text-xs transition-colors ' +
+            (authorView === 'hermes'
+              ? 'border-cyan bg-cyan/10 text-cyan'
+              : 'border-line text-muted hover:border-cyan hover:text-cyan')
+          }
+        >
+          Hermes 协作
+        </button>
+        <button
+          type="button"
+          onClick={() => setAuthorView('vincent')}
+          className={
+            'border px-4 py-2 font-mono text-xs transition-colors ' +
+            (authorView === 'vincent'
+              ? 'border-magenta bg-magenta/10 text-magenta'
+              : 'border-line text-muted hover:border-magenta hover:text-magenta')
+          }
+        >
+          我的文章
+        </button>
+      </div>
 
       <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_280px]">
         {/* 主列：搜索 + 列表 */}
@@ -164,7 +198,7 @@ export default function BlogList() {
 
         {/* 侧栏：分类 + 最新 */}
         <aside className="space-y-8">
-          <div className="cyber-card p-5">
+          <div className="cyber-card max-h-64 overflow-y-auto p-5">
             <h3 className="section-label mb-3">分类</h3>
             {categories.length === 0 ? (
               <p className="font-mono text-xs text-muted">暂无分类</p>
@@ -208,10 +242,10 @@ export default function BlogList() {
             )}
           </div>
 
-          <div className="cyber-card p-5">
+          <div className="cyber-card max-h-64 overflow-y-auto p-5">
             <h3 className="section-label mb-3">最新文章</h3>
             <ul className="space-y-3">
-              {all.slice(0, 5).map((p) => (
+              {visibleByAuthor.slice(0, 5).map((p) => (
                 <li key={p.id}>
                   <a
                     href={`#/blog/${p.slug}`}
