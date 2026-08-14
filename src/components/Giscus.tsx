@@ -13,9 +13,14 @@ export default function Giscus({ repo }: { repo: string }) {
     // 避免重复注入脚本
     if (ref.current.querySelector('script')) return;
 
-    // 清掉可能缓存的旧主题（dark），强制用自定义赛博主题
+    // 清掉所有 giscus 缓存（主题/会话），防止旧 dark 配置残留导致自定义 CSS 不生效
     try {
-      localStorage.removeItem('giscus-theme');
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('giscus'))
+        .forEach((k) => localStorage.removeItem(k));
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith('giscus'))
+        .forEach((k) => sessionStorage.removeItem(k));
     } catch {
       /* ignore */
     }
@@ -37,6 +42,22 @@ export default function Giscus({ repo }: { repo: string }) {
     script.setAttribute('data-lang', 'zh-CN');
     script.setAttribute('data-loading', 'lazy');
     ref.current.appendChild(script);
+
+    // 脚本加载后，主动通过 giscus() API 强制重载自定义主题（双保险）
+    script.addEventListener('load', () => {
+      try {
+        const g = (window as unknown as { giscus?: (c: unknown) => void }).giscus;
+        if (g) {
+          g({
+            setConfig: {
+              theme: 'https://www.otscup.com/giscus-theme.css',
+            },
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    });
   }, [repo]);
 
   return (
