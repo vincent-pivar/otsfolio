@@ -115,15 +115,17 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       .bind(...params)
       .all<{ country: string; c: number }>();
 
-    // 每日趋势（近 14 天）
+    // 每日趋势（近 30 天，含每日去重人数）
     const daily = await env.portfolio_content
       .prepare(
-        `SELECT day, COUNT(CASE WHEN action='view' THEN 1 END) views,
+        `SELECT day,
+                COUNT(CASE WHEN action='view' THEN 1 END) views,
+                COUNT(DISTINCT CASE WHEN action='view' THEN ip_hash END) uv,
                 COUNT(CASE WHEN action='read' THEN 1 END) reads
-         FROM analytics WHERE 1=1 ${sinceClause} GROUP BY day ORDER BY day DESC LIMIT 14`,
+         FROM analytics WHERE 1=1 ${sinceClause} GROUP BY day ORDER BY day DESC LIMIT 30`,
       )
       .bind(...params)
-      .all<{ day: string; views: number; reads: number }>();
+      .all<{ day: string; views: number; uv: number; reads: number }>();
 
     return json({
       ok: true,

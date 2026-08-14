@@ -203,13 +203,151 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'data', label: '数据' },
 ];
 
+/* ---------- 趋势折线图（SVG 手绘，无依赖） ---------- */
+function TrendChart({ daily, range }: { daily: { day: string; views: number; uv: number }[]; range: 7 | 30 }) {
+  const W = 560;
+  const H = 200;
+  const padL = 36;
+  const padB = 26;
+  const padT = 12;
+  const padR = 12;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const days = Math.min(range, daily.length);
+  const series = daily.slice(0, days).reverse(); // 按时间正序
+  const maxV = Math.max(1, ...series.map((d) => d.views));
+  const maxUv = Math.max(1, ...series.map((d) => d.uv));
+
+  const x = (i: number) => padL + (series.length <= 1 ? plotW / 2 : (i / (series.length - 1)) * plotW);
+  const yV = (v: number) => padT + plotH - (v / maxV) * plotH;
+  const yUv = (v: number) => padT + plotH - (v / maxUv) * plotH;
+
+  const line = (key: 'views' | 'uv', yfn: (v: number) => number) =>
+    series.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yfn(d[key]).toFixed(1)}`).join(' ');
+  const area = (yfn: (v: number) => number) =>
+    `${line('views', yfn)} L ${x(series.length - 1).toFixed(1)} ${(padT + plotH).toFixed(1)} L ${x(0).toFixed(1)} ${(padT + plotH).toFixed(1)} Z`;
+
+  const yTicks = [0, 0.5, 1].map((f) => Math.round(maxV * f));
+  const labelEvery = series.length > 15 ? 5 : series.length > 10 ? 3 : 1;
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="每日访问趋势折线图">
+        {/* 网格 + Y 轴刻度 */}
+        {[0, 0.5, 1].map((f, i) => {
+          const yy = padT + plotH - f * plotH;
+          return (
+            <g key={i}>
+              <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="#232342" strokeWidth={1} />
+              <text x={padL - 6} y={yy + 3} textAnchor="end" fontSize={9} fill="#7a7a9a" fontFamily="monospace">
+                {yTicks[i]}
+              </text>
+            </g>
+          );
+        })}
+        {/* 面积 */}
+        <path d={area(yV)} fill="rgba(0,240,255,0.12)" />
+        {/* 真实人数线（magenta） */}
+        <path d={line('uv', yUv)} fill="none" stroke="#ff00a0" strokeWidth={1.6} />
+        {/* 总访问线（cyan） */}
+        <path d={line('views', yV)} fill="none" stroke="#00f0ff" strokeWidth={1.8} />
+        {/* X 轴日期 */}
+        {series.map((d, i) =>
+          i % labelEvery === 0 ? (
+            <text
+              key={d.day}
+              x={x(i)}
+              y={H - 8}
+              textAnchor="middle"
+              fontSize={8}
+              fill="#7a7a9a"
+              fontFamily="monospace"
+            >
+              {d.day.slice(5)}
+            </text>
+          ) : null,
+        )}
+        {/* 端点 */}
+        {series.map((d, i) => (
+          <circle key={d.day} cx={x(i)} cy={yV(d.views)} r={1.8} fill="#00f0ff" />
+        ))}
+      </svg>
+      <div className="flex gap-4 mt-1 text-[10px] font-mono">
+        <span className="flex items-center gap-1 text-cyan">
+          <span className="inline-block w-3 h-0.5 bg-cyan" /> 总访问次数
+        </span>
+        <span className="flex items-center gap-1 text-magenta">
+          <span className="inline-block w-3 h-0.5 bg-magenta" /> 真实访问人数
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- 国家占比甜甜圈（SVG） ---------- */
+const DONUT_COLORS = ['#00f0ff', '#ff00a0', '#a3e635', '#f59e0b', '#8b5cf6', '#ef4444', '#22d3ee'];
+function CountryDonut({ rows, total }: { rows: { country: string; c: number }[]; total: number }) {
+  const R = 60;
+  const C = 2 * Math.PI * R;
+  let acc = 0;
+  return (
+    <div className="flex items-center gap-5 flex-wrap">
+      <svg viewBox="0 0 160 160" className="w-36 h-36 shrink-0" role="img" aria-label="国家占比饼图">
+        <circle cx={80} cy={80} r={R} fill="none" stroke="#232342" strokeWidth={18} />
+        {rows.map((r, i) => {
+          const frac = r.c / total;
+          const dash = frac * C;
+          const seg = (
+            <circle
+              key={r.country}
+              cx={80}
+              cy={80}
+              r={R}
+              fill="none"
+              stroke={DONUT_COLORS[i % DONUT_COLORS.length]}
+              strokeWidth={18}
+              strokeDasharray={`${dash} ${C - dash}`}
+              strokeDashoffset={-acc * C}
+              transform="rotate(-90 80 80)"
+            >
+              <title>{`${r.country === 'XX' ? '未知' : r.country}: ${(frac * 100).toFixed(1)}%`}</title>
+            </circle>
+          );
+          acc += frac;
+          return seg;
+        })}
+        <text x={80} y={76} textAnchor="middle" fontSize={13} fill="#e2e8f0" fontFamily="monospace">
+          {total}
+        </text>
+        <text x={80} y={92} textAnchor="middle" fontSize={8} fill="#7a7a9a" fontFamily="monospace">
+          总访问
+        </text>
+      </svg>
+      <ul className="space-y-1 text-xs">
+        {rows.slice(0, 8).map((r, i) => (
+          <li key={r.country} className="flex items-center gap-2 font-mono">
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm"
+              style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+            />
+            <span className="text-slate-200">{r.country === 'XX' ? '未知' : r.country}</span>
+            <span className="text-cyan">{((r.c / total) * 100).toFixed(1)}%</span>
+            <span className="text-line">({r.c})</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /* ---------- 访问统计面板 ---------- */
 type StatData = {
   totalViews: number;
   uniqueVisitors: number;
   perPost: { slug: string; views: number; reads: number; avg_duration: number }[];
   byCountry: { country: string; c: number }[];
-  daily: { day: string; views: number; reads: number }[];
+  daily: { day: string; views: number; uv: number; reads: number }[];
 };
 
 function StatsPanel() {
@@ -217,13 +355,20 @@ function StatsPanel() {
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function load() {
+  const [range, setRange] = useState<7 | 30>(7);
+
+  async function load(sinceDays?: number) {
     setLoading(true);
     setErr('');
     try {
       const site = loadSite();
       const hash = site.settings?.adminPassHash || '';
-      const r = await fetch('/api/track', { headers: { 'x-admin-hash': hash } });
+      const since =
+        sinceDays != null
+          ? new Date(Date.now() - sinceDays * 86400000).toISOString().slice(0, 10)
+          : '';
+      const url = since ? `/api/track?since=${since}` : '/api/track';
+      const r = await fetch(url, { headers: { 'x-admin-hash': hash } });
       const j = await r.json();
       if (!j.ok) throw new Error(j.error || '加载失败');
       setData(j);
@@ -235,8 +380,8 @@ function StatsPanel() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    load(range);
+  }, [range]);
 
   const maxViews = Math.max(1, ...(data?.perPost.map((p) => p.views) || []));
   const totalCountry = data?.byCountry.reduce((s, c) => s + c.c, 0) || 1;
@@ -263,7 +408,7 @@ function StatsPanel() {
         <h2 className="section-label">访问统计（D1 实时）</h2>
         <button
           type="button"
-          onClick={load}
+          onClick={() => load()}
           disabled={loading}
           className="px-3 py-1 text-xs text-cyan border border-cyan/40 hover:bg-cyan hover:text-void transition-all disabled:opacity-50"
         >
@@ -358,19 +503,43 @@ function StatsPanel() {
             </div>
           </div>
 
-          {/* 近 14 天趋势 */}
+          {/* 趋势折线图（7/30 天切换） */}
           <div>
-            <h3 className="text-xs font-mono text-muted mb-2">近 14 天趋势</h3>
-            <div className="flex items-end gap-1 h-24">
-              {data.daily.map((d) => (
-                <div
-                  key={d.day}
-                  className="flex-1 bg-cyan/30 hover:bg-cyan/60 transition-colors"
-                  style={{ height: `${(d.views / Math.max(1, ...data.daily.map((x) => x.views))) * 100}%` }}
-                  title={`${d.day}: ${d.views} 次访问`}
-                />
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-mono text-muted">每日访问趋势</h3>
+              <div className="flex gap-1">
+                {([7, 30] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRange(r)}
+                    className={`px-2 py-0.5 font-mono text-xs border transition-all ${
+                      range === r
+                        ? 'border-cyan text-cyan shadow-neon'
+                        : 'border-line text-muted hover:text-slate-300'
+                    }`}
+                  >
+                    {r}天
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {data.daily.length === 0 ? (
+              <p className="text-xs text-muted py-8 text-center">近 {range} 天暂无访问数据</p>
+            ) : (
+              <TrendChart daily={data.daily} range={range} />
+            )}
+          </div>
+
+          {/* 国家占比甜甜圈 */}
+          <div>
+            <h3 className="text-xs font-mono text-muted mb-2">国家 / 地区占比</h3>
+            {data.byCountry.length === 0 ? (
+              <p className="text-xs text-muted">暂无数据</p>
+            ) : (
+              <CountryDonut rows={data.byCountry} total={totalCountry} />
+            )}
           </div>
         </div>
       )}
