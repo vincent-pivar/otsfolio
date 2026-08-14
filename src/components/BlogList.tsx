@@ -63,7 +63,7 @@ export default function BlogList() {
                 setShown(PAGE);
               }}
               placeholder="搜索标题、正文或标签…"
-              className="flex-1 border border-line bg-void/60 px-3 py-2.5 font-mono text-sm text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+              className="ios-input flex-1"
             />
             {(query || cat) && (
               <button

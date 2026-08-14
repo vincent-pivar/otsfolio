@@ -17,12 +17,14 @@
 }
 
 @layer components {
-  /* 赛博卡片：切角 + 霓虹描边 */
+  /* iOS 风格卡片：圆角 + 毛玻璃 + 细边框 + 柔和阴影（无切角，避免边线断开） */
   .cyber-card {
-    @apply relative bg-surface/80 border border-line backdrop-blur-sm transition-all duration-300;
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    @apply relative rounded-2xl border border-white/10 bg-surface/70 backdrop-blur-md
+           shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300;
   }
-  .cyber-card:hover { @apply border-cyan/60 shadow-neon; }
+  .cyber-card:hover {
+    @apply border-cyan/40 shadow-[0_10px_40px_rgba(0,240,255,0.12)];
+  }
 
   .neon-text { text-shadow: 0 0 8px rgba(0,240,255,.6); }
 
@@ -46,18 +48,23 @@
   }
 
   .btn-neon {
-    @apply relative px-6 py-3 font-display font-bold tracking-wider text-cyan border border-cyan/60 bg-cyan/5
-           transition-all duration-300 hover:bg-cyan hover:text-void hover:shadow-neon uppercase text-sm;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    @apply relative px-6 py-3 font-display font-bold tracking-wider text-cyan border border-cyan/50 bg-cyan/5
+           rounded-xl transition-all duration-300 hover:bg-cyan hover:text-void uppercase text-sm;
   }
 
   .section-label {
     @apply font-mono text-xs tracking-[0.3em] text-magenta uppercase mb-3;
   }
 
+  /* iOS 风格输入框（搜索框） */
+  .ios-input {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-100
+           placeholder:text-muted transition-all focus:border-cyan/60 focus:outline-none focus:ring-2 focus:ring-cyan/20;
+  }
+
   /* 后台 Markdown 编辑器工具栏按钮 */
   .tool-btn {
-    @apply border border-line px-2.5 py-1 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan;
+    @apply rounded-lg border border-white/10 px-2.5 py-1 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan;
   }
 
   /* 博客正文排版：dangerouslySetInnerHTML 注入的 HTML 不走 Tailwind 扫描，
@@ -79,21 +86,21 @@
   .prose-cyber ul { @apply list-disc pl-6 space-y-1.5 text-slate-300; }
   .prose-cyber ol { @apply list-decimal pl-6 space-y-1.5 text-slate-300; }
   .prose-cyber blockquote {
-    @apply border-l-2 border-magenta bg-magenta/5 py-2 pl-4 my-5 text-muted italic;
+    @apply border-l-2 border-magenta bg-magenta/5 py-2 pl-4 my-5 text-muted italic rounded-r-lg;
   }
   .prose-cyber img {
-    @apply mx-auto my-6 block max-w-full rounded border border-line;
+    @apply mx-auto my-6 block max-w-full rounded-xl border border-white/10;
   }
   .prose-cyber pre {
-    @apply my-5 overflow-x-auto border border-line bg-void/80 p-4 rounded;
+    @apply my-5 overflow-x-auto border border-white/10 bg-void/80 p-4 rounded-xl;
   }
   .prose-cyber pre code {
     @apply font-mono text-xs leading-relaxed text-lime;
   }
   .prose-cyber :not(pre) > code {
-    @apply rounded border border-line bg-void/70 px-1.5 py-0.5 font-mono text-[0.9em] text-lime;
+    @apply rounded-md border border-white/10 bg-void/70 px-1.5 py-0.5 font-mono text-[0.9em] text-lime;
   }
-  .prose-cyber hr { @apply my-8 border-line; }
+  .prose-cyber hr { @apply my-8 border-white/10; }
 }
 
 @media (prefers-reduced-motion: reduce) {
