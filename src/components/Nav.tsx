@@ -1,6 +1,8 @@
-import { profile, nav } from '../content';
+import { nav } from '../content';
+import { useSite } from '../hooks/useSite';
 
 export default function Nav() {
+  const { profile } = useSite();
   return (
     <header className="fixed top-0 z-40 w-full border-b border-line bg-void/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">

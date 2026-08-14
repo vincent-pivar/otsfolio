@@ -1,6 +1,7 @@
-import { skills } from '../content';
+import { useSite } from '../hooks/useSite';
 
 export default function Skills() {
+  const { skills } = useSite();
   return (
     <section id="skills" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 技术栈</p>

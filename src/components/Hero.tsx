@@ -1,6 +1,7 @@
-import { profile } from '../content';
+import { useSite } from '../hooks/useSite';
 
 export default function Hero() {
+  const { profile } = useSite();
   return (
     <section id="hero" className="relative flex min-h-screen items-center px-6">
       {/* 背景光斑 */}

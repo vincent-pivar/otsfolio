@@ -1,6 +1,7 @@
-import { timeline } from '../content';
+import { useSite } from '../hooks/useSite';
 
 export default function Timeline() {
+  const { timeline } = useSite();
   return (
     <section id="timeline" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 技术历程</p>

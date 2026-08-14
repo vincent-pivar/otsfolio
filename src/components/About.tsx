@@ -1,4 +1,4 @@
-import { profile } from '../content';
+import { useSite } from '../hooks/useSite';
 
 const stats = [
   { value: '2+', label: '上线 / 在研项目' },
@@ -7,6 +7,7 @@ const stats = [
 ];
 
 export default function About() {
+  const { profile } = useSite();
   return (
     <section id="about" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 关于我</p>

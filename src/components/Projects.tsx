@@ -1,4 +1,5 @@
-import { projects, type Project } from '../content';
+import { useSite } from '../hooks/useSite';
+import type { Project } from '../types';
 
 const accentMap: Record<
   Project['accent'],
@@ -25,6 +26,7 @@ const accentMap: Record<
 };
 
 export default function Projects() {
+  const { projects } = useSite();
   return (
     <section id="projects" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 作品精选</p>
@@ -37,7 +39,7 @@ export default function Projects() {
           const a = accentMap[p.accent];
           return (
             <article
-              key={p.name}
+              key={p.id}
               className={`cyber-card hover:-translate-y-1 ${a.hover} flex flex-col p-6 sm:p-7`}
             >
               <div className="flex items-center justify-between">
@@ -47,6 +49,17 @@ export default function Projects() {
                   {p.status}
                 </span>
               </div>
+
+              {p.cover && (
+                <div className="mt-4 overflow-hidden border border-line">
+                  <img
+                    src={p.cover}
+                    alt={`${p.name} 封面`}
+                    loading="lazy"
+                    className="h-40 w-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              )}
 
               <h3 className="mt-4 font-display text-2xl font-bold">{p.name}</h3>
               <p className="mt-1 font-mono text-sm text-muted">{p.subtitle}</p>
