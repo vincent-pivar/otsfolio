@@ -63,7 +63,7 @@ export function importSite(json: string): SiteData {
   return normalize({ ...parsed, version: SITE_VERSION });
 }
 
-/** 补齐可能缺失的数组字段，防止后台删空后前台崩溃 */
+/** 补齐可能缺失的字段，防止后台删空或旧数据结构导致前台崩溃 */
 function normalize(d: SiteData): SiteData {
   return {
     version: SITE_VERSION,
@@ -76,6 +76,8 @@ function normalize(d: SiteData): SiteData {
     projects: d.projects ?? [],
     timeline: d.timeline ?? [],
     skills: d.skills ?? [],
+    posts: d.posts ?? [],
+    settings: { ...defaultSite.settings, ...d.settings },
   };
 }
 

@@ -44,6 +44,38 @@ export type SkillGroup = {
   items: string[];
 };
 
+/** 博客文章 */
+export type Post = {
+  id: string;
+  /** URL 短链，用于 #/blog/<slug>，须唯一 */
+  slug: string;
+  title: string;
+  /** 列表页摘要；留空则自动从正文截取 */
+  excerpt: string;
+  /** 正文，支持轻量 Markdown */
+  body: string;
+  tags: string[];
+  /** ISO 日期 YYYY-MM-DD */
+  date: string;
+  /** 草稿不在前台显示 */
+  published: boolean;
+  /** 封面图：本地为 dataURL，云端为 R2 地址 */
+  cover?: string;
+};
+
+/** 站点设置 */
+export type Settings = {
+  /** 浏览器标签标题 */
+  siteTitle: string;
+  /** SEO 描述 */
+  siteDescription: string;
+  /**
+   * 后台访问口令的哈希值（非明文）。
+   * 空字符串表示未设置口令，此时后台开放访问并提示用户设置。
+   */
+  adminPassHash: string;
+};
+
 export type Contact = {
   label: string;
   value: string;
@@ -66,7 +98,11 @@ export type SiteData = {
   projects: Project[];
   timeline: TimelineItem[];
   skills: SkillGroup[];
+  posts: Post[];
+  settings: Settings;
 };
 
-export const SITE_STORE_KEY = 'cyber-portfolio-site-v1';
-export const SITE_VERSION = 1;
+export const SITE_STORE_KEY = 'cyber-portfolio-site-v2';
+/** 后台会话标记（sessionStorage，关闭标签即失效） */
+export const ADMIN_SESSION_KEY = 'cyber-portfolio-admin-session';
+export const SITE_VERSION = 2;

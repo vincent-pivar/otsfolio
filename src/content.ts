@@ -98,7 +98,15 @@ export const skills = [
   { group: 'AI 工程', items: ['大模型 API 集成', 'Prompt 设计', '多模型容灾', 'Agent 编排'] },
 ];
 
-export const nav = [
+export type NavItem = {
+  id: string;
+  label: string;
+  /** 独立路由项（如博客）用 route，其余为页内锚点 */
+  route?: string;
+};
+
+export const nav: NavItem[] = [
+  { id: 'blog', label: '博客', route: '#/blog' },
   { id: 'hero', label: '首页' },
   { id: 'about', label: '关于' },
   { id: 'projects', label: '作品' },

@@ -1,5 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import type { SiteData, Profile, Contact, Social, Project, TimelineItem, SkillGroup } from '../types';
+import type {
+  SiteData,
+  Profile,
+  Contact,
+  Social,
+  Project,
+  TimelineItem,
+  SkillGroup,
+  Post,
+} from '../types';
+import { autoExcerpt, slugify } from '../markdown';
+import { hashPass, logout } from '../auth';
 import { loadSite, saveSite, resetSite, exportSite, importSite, newId } from '../store';
 
 /* ---------- 可复用子组件 ---------- */
@@ -179,24 +190,31 @@ function StringListEditor({
 
 /* ---------- 主组件 ---------- */
 
-type TabKey = 'profile' | 'projects' | 'timeline' | 'skills' | 'data';
+type TabKey = 'profile' | 'posts' | 'projects' | 'timeline' | 'skills' | 'settings' | 'data';
 
 const TABS: { key: TabKey; label: string }[] = [
+  { key: 'posts', label: '博客' },
   { key: 'profile', label: '基本资料' },
   { key: 'projects', label: '项目' },
   { key: 'timeline', label: '历程' },
   { key: 'skills', label: '技能' },
+  { key: 'settings', label: '设置' },
   { key: 'data', label: '数据' },
 ];
 
 export default function AdminPanel() {
   const [state, setState] = useState<SiteData>(() => loadSite());
-  const [activeTab, setActiveTab] = useState<TabKey>('profile');
+  const [activeTab, setActiveTab] = useState<TabKey>('posts');
   const [showSaved, setShowSaved] = useState(false);
   const [coverErrors, setCoverErrors] = useState<Record<string, string>>({});
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
   const [saveError, setSaveError] = useState('');
+  /** 当前展开编辑的文章 id；null 表示都折叠 */
+  const [expandedPost, setExpandedPost] = useState<string | null>(null);
+  const [newPass, setNewPass] = useState('');
+  const [newPass2, setNewPass2] = useState('');
+  const [passMsg, setPassMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const savedRef = useRef<string>(JSON.stringify(state));
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -438,6 +456,115 @@ export default function AdminPanel() {
       skills: [...prev.skills, { id: newId(), group: '', items: [] }],
     }));
 
+  /* ----- 博客文章 ----- */
+
+  const updatePost = (id: string, patch: Partial<Post>) =>
+    setState((prev) => ({
+      ...prev,
+      posts: prev.posts.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+
+  const removePost = (id: string) => {
+    const target = state.posts.find((p) => p.id === id);
+    if (!window.confirm(`确定删除文章「${target?.title || '未命名'}」？此操作不可撤销。`)) return;
+    setState((prev) => ({ ...prev, posts: prev.posts.filter((p) => p.id !== id) }));
+  };
+
+  const addPost = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const fresh: Post = {
+      id: newId(),
+      slug: 'post-' + Date.now().toString(36),
+      title: '',
+      excerpt: '',
+      body: '',
+      tags: [],
+      date: today,
+      published: false,
+    };
+    setState((prev) => ({ ...prev, posts: [fresh, ...prev.posts] }));
+    setExpandedPost(fresh.id);
+  };
+
+  /** 由标题生成 slug，并保证站内唯一 */
+  const regenSlug = (id: string) => {
+    const post = state.posts.find((p) => p.id === id);
+    if (!post || !post.title.trim()) return;
+    let base = slugify(post.title);
+    const taken = new Set(state.posts.filter((p) => p.id !== id).map((p) => p.slug));
+    let candidate = base;
+    let n = 2;
+    while (taken.has(candidate)) candidate = `${base}-${n++}`;
+    updatePost(id, { slug: candidate });
+  };
+
+  const fillExcerpt = (id: string) => {
+    const post = state.posts.find((p) => p.id === id);
+    if (!post) return;
+    updatePost(id, { excerpt: autoExcerpt(post.body, 120) });
+  };
+
+  const handlePostCover = (postId: string, file: File | null) => {
+    if (!file) return;
+    if (file.size > 400 * 1024) {
+      setCoverErrors((prev) => ({
+        ...prev,
+        ['post-' + postId]: '文件过大（超过 400KB），请使用更小的图片',
+      }));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (!result) return;
+      updatePost(postId, { cover: result });
+      setCoverErrors((prev) => {
+        const next = { ...prev };
+        delete next['post-' + postId];
+        return next;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  /* ----- 设置 ----- */
+
+  const updateSettings = (patch: Partial<SiteData['settings']>) =>
+    setState((prev) => ({ ...prev, settings: { ...prev.settings, ...patch } }));
+
+  const handleChangePass = async () => {
+    if (newPass.length < 6) {
+      setPassMsg({ kind: 'err', text: '口令至少 6 位' });
+      return;
+    }
+    if (newPass !== newPass2) {
+      setPassMsg({ kind: 'err', text: '两次输入不一致' });
+      return;
+    }
+    try {
+      const hash = await hashPass(newPass);
+      // 口令改动立即落盘，避免忘记点保存导致状态不一致
+      const next = { ...state, settings: { ...state.settings, adminPassHash: hash } };
+      setState(next);
+      saveSite(next);
+      savedRef.current = JSON.stringify(next);
+      setNewPass('');
+      setNewPass2('');
+      setPassMsg({ kind: 'ok', text: '口令已更新并保存' });
+    } catch (e) {
+      setPassMsg({ kind: 'err', text: e instanceof Error ? e.message : '更新失败' });
+    }
+  };
+
+  const handleClearPass = () => {
+    if (!window.confirm('清除口令后，任何人都能进入后台修改内容。确定继续？')) return;
+    const next = { ...state, settings: { ...state.settings, adminPassHash: '' } };
+    setState(next);
+    saveSite(next);
+    savedRef.current = JSON.stringify(next);
+    setPassMsg({ kind: 'ok', text: '口令已清除' });
+  };
+
   /* ----- 渲染 ----- */
 
   return (
@@ -495,6 +622,338 @@ export default function AdminPanel() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* ===== 基本资料 ===== */}
+        {activeTab === 'posts' && (
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="section-label">
+                文章管理（共 {state.posts.length} 篇 ·{' '}
+                {state.posts.filter((p) => p.published).length} 篇已发布）
+              </h2>
+              <button type="button" onClick={addPost} className="btn-neon">
+                + 写新文章
+              </button>
+            </div>
+
+            {state.posts.length === 0 && (
+              <p className="cyber-card p-8 text-center font-mono text-sm text-muted">
+                还没有文章，点击右上角开始写
+              </p>
+            )}
+
+            {state.posts.map((post) => {
+              const open = expandedPost === post.id;
+              return (
+                <article key={post.id} className="cyber-card p-5">
+                  {/* 折叠头部 */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedPost(open ? null : post.id)}
+                      className="flex flex-1 items-center gap-3 text-left"
+                      aria-expanded={open}
+                    >
+                      <span className="font-mono text-xs text-cyan">{open ? '▾' : '▸'}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display font-bold text-slate-100">
+                          {post.title || '（未命名文章）'}
+                        </span>
+                        <span className="mt-0.5 block font-mono text-[10px] text-muted">
+                          {post.date} · {post.slug}
+                        </span>
+                      </span>
+                    </button>
+
+                    <span
+                      className={
+                        post.published
+                          ? 'border border-lime/50 px-2 py-0.5 font-mono text-[10px] text-lime'
+                          : 'border border-line px-2 py-0.5 font-mono text-[10px] text-muted'
+                      }
+                    >
+                      {post.published ? '已发布' : '草稿'}
+                    </span>
+
+                    <label className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] text-muted">
+                      <input
+                        type="checkbox"
+                        checked={post.published}
+                        onChange={(e) => updatePost(post.id, { published: e.target.checked })}
+                        className="accent-cyan"
+                      />
+                      发布
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => removePost(post.id)}
+                      className="border border-magenta/50 px-2.5 py-1 font-mono text-[10px] text-magenta transition-colors hover:bg-magenta/10"
+                    >
+                      删除
+                    </button>
+                  </div>
+
+                  {/* 展开的编辑区 */}
+                  {open && (
+                    <div className="mt-5 space-y-4 border-t border-line pt-5">
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <TextField
+                          id={`post-title-${post.id}`}
+                          label="标题"
+                          value={post.title}
+                          onChange={(v) => updatePost(post.id, { title: v })}
+                        />
+                        <TextField
+                          id={`post-date-${post.id}`}
+                          label="日期（YYYY-MM-DD）"
+                          value={post.date}
+                          onChange={(v) => updatePost(post.id, { date: v })}
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor={`post-slug-${post.id}`}
+                          className="mb-1.5 block font-mono text-xs tracking-wider text-muted"
+                        >
+                          短链（文章地址 #/blog/…）
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            id={`post-slug-${post.id}`}
+                            value={post.slug}
+                            onChange={(e) => updatePost(post.id, { slug: e.target.value })}
+                            className="flex-1 border border-line bg-void/60 px-3 py-2 font-mono text-sm text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => regenSlug(post.id)}
+                            className="whitespace-nowrap border border-line px-3 py-2 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan"
+                          >
+                            由标题生成
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <label
+                            htmlFor={`post-excerpt-${post.id}`}
+                            className="font-mono text-xs tracking-wider text-muted"
+                          >
+                            摘要（留空则自动截取正文）
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => fillExcerpt(post.id)}
+                            className="font-mono text-[10px] text-cyan hover:text-magenta"
+                          >
+                            从正文生成
+                          </button>
+                        </div>
+                        <textarea
+                          id={`post-excerpt-${post.id}`}
+                          rows={2}
+                          value={post.excerpt}
+                          onChange={(e) => updatePost(post.id, { excerpt: e.target.value })}
+                          className="w-full resize-y border border-line bg-void/60 px-3 py-2 text-sm text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          htmlFor={`post-body-${post.id}`}
+                          className="mb-1.5 block font-mono text-xs tracking-wider text-muted"
+                        >
+                          正文（支持 Markdown：# 标题 **粗体** `代码` &gt; 引用 - 列表）
+                        </label>
+                        <textarea
+                          id={`post-body-${post.id}`}
+                          rows={16}
+                          value={post.body}
+                          onChange={(e) => updatePost(post.id, { body: e.target.value })}
+                          className="w-full resize-y border border-line bg-void/60 px-3 py-2 font-mono text-xs leading-relaxed text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                        />
+                        <p className="mt-1 font-mono text-[10px] text-line">
+                          {post.body.length} 字
+                        </p>
+                      </div>
+
+                      <StringListEditor
+                        id={`post-tags-${post.id}`}
+                        label="标签"
+                        items={post.tags}
+                        onChange={(v) => updatePost(post.id, { tags: v })}
+                        placeholder="输入标签后回车"
+                      />
+
+                      {/* 封面图 */}
+                      <div>
+                        <span className="mb-1.5 block font-mono text-xs tracking-wider text-muted">
+                          封面图（可选，需小于 400KB）
+                        </span>
+                        {post.cover && (
+                          <div className="mb-2 flex items-center gap-3">
+                            <img
+                              src={post.cover}
+                              alt="封面预览"
+                              className="h-16 w-24 border border-line object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => updatePost(post.id, { cover: undefined })}
+                              className="border border-magenta/50 px-2.5 py-1 font-mono text-[10px] text-magenta transition-colors hover:bg-magenta/10"
+                            >
+                              移除封面
+                            </button>
+                          </div>
+                        )}
+                        <input
+                          id={`post-cover-${post.id}`}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handlePostCover(post.id, e.target.files?.[0] ?? null)}
+                          className="block w-full font-mono text-xs text-muted file:mr-3 file:border file:border-line file:bg-void/60 file:px-3 file:py-1.5 file:font-mono file:text-xs file:text-cyan hover:file:border-cyan"
+                        />
+                        {coverErrors['post-' + post.id] && (
+                          <p role="alert" className="mt-1.5 font-mono text-xs text-magenta">
+                            ⚠ {coverErrors['post-' + post.id]}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-3 border-t border-line pt-4">
+                        <a
+                          href={`#/blog/${post.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono text-xs text-cyan hover:text-magenta"
+                        >
+                          ↗ 新标签预览（需先保存）
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="space-y-8">
+            <section className="cyber-card p-5">
+              <h2 className="section-label">站点信息</h2>
+              <div className="space-y-4">
+                <TextField
+                  id="site-title"
+                  label="浏览器标签标题"
+                  value={state.settings.siteTitle}
+                  onChange={(v) => updateSettings({ siteTitle: v })}
+                />
+                <TextAreaField
+                  id="site-desc"
+                  label="站点描述（用于搜索引擎与分享卡片）"
+                  value={state.settings.siteDescription}
+                  onChange={(v) => updateSettings({ siteDescription: v })}
+                  rows={3}
+                />
+              </div>
+            </section>
+
+            <section className="cyber-card p-5">
+              <h2 className="section-label">后台访问口令</h2>
+              <p className="mb-4 font-body text-sm text-muted">
+                {state.settings.adminPassHash
+                  ? '已设置口令。进入后台需要验证。'
+                  : '尚未设置口令，任何人都能打开后台修改内容，建议立即设置。'}
+              </p>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="new-pass"
+                    className="mb-1.5 block font-mono text-xs tracking-wider text-muted"
+                  >
+                    新口令（至少 6 位）
+                  </label>
+                  <input
+                    id="new-pass"
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPass}
+                    onChange={(e) => setNewPass(e.target.value)}
+                    className="w-full border border-line bg-void/60 px-3 py-2 text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="new-pass2"
+                    className="mb-1.5 block font-mono text-xs tracking-wider text-muted"
+                  >
+                    再次输入
+                  </label>
+                  <input
+                    id="new-pass2"
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPass2}
+                    onChange={(e) => setNewPass2(e.target.value)}
+                    className="w-full border border-line bg-void/60 px-3 py-2 text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {passMsg && (
+                <p
+                  role="alert"
+                  className={
+                    passMsg.kind === 'ok'
+                      ? 'mt-3 font-mono text-xs text-lime'
+                      : 'mt-3 font-mono text-xs text-magenta'
+                  }
+                >
+                  {passMsg.kind === 'ok' ? '✓ ' : '⚠ '}
+                  {passMsg.text}
+                </p>
+              )}
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => void handleChangePass()}
+                  className="btn-neon"
+                >
+                  {state.settings.adminPassHash ? '更新口令' : '设置口令'}
+                </button>
+                {state.settings.adminPassHash && (
+                  <button
+                    type="button"
+                    onClick={handleClearPass}
+                    className="border border-magenta/50 px-4 py-2 font-mono text-xs text-magenta transition-colors hover:bg-magenta/10"
+                  >
+                    清除口令
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    window.location.hash = '#/';
+                  }}
+                  className="border border-line px-4 py-2 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan"
+                >
+                  退出登录
+                </button>
+              </div>
+
+              <p className="mt-4 border-t border-line pt-4 font-mono text-[10px] leading-relaxed text-line">
+                说明：本地阶段口令校验在浏览器完成，可防止随手改动，但技术上可绕过。
+                部署到 Cloudflare 后将改由服务端校验，那时前端绕过也无法写入数据。
+              </p>
+            </section>
+          </div>
+        )}
+
         {activeTab === 'profile' && (
           <div className="space-y-8">
             <section className="cyber-card p-5">
