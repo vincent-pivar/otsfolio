@@ -1,7 +1,22 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useSite } from '../hooks/useSite';
 import { renderMarkdown, readingTime } from '../markdown';
 import Giscus from './Giscus';
+
+const TRACK_URL = '/api/track';
+function track(slug: string, action: 'view' | 'read', duration = 0) {
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    const blob = new Blob([JSON.stringify({ slug, action, duration })], { type: 'application/json' });
+    navigator.sendBeacon(TRACK_URL, blob);
+  } else {
+    fetch(TRACK_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ slug, action, duration }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+}
 
 export default function BlogPost({ slug }: { slug: string }) {
   const { posts, settings } = useSite();
@@ -39,6 +54,27 @@ export default function BlogPost({ slug }: { slug: string }) {
       })
       .join('\n');
   }, [post.body, post.cover]);
+
+  // 访问统计埋点：进入记 view，离开按停留时长记 read
+  const startRef = useRef(Date.now());
+  useEffect(() => {
+    if (!post) return;
+    startRef.current = Date.now();
+    track(post.slug, 'view');
+    const onHide = () => {
+      const dur = Math.round((Date.now() - startRef.current) / 1000);
+      if (dur >= 5) track(post.slug, 'read', dur);
+    };
+    window.addEventListener('pagehide', onHide);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') onHide();
+    });
+    return () => {
+      const dur = Math.round((Date.now() - startRef.current) / 1000);
+      if (dur >= 5) track(post.slug, 'read', dur);
+      window.removeEventListener('pagehide', onHide);
+    };
+  }, [post?.slug]);
   const minutes = readingTime(post.body);
   const older = index + 1 < published.length ? published[index + 1] : undefined;
   const newer = index - 1 >= 0 ? published[index - 1] : undefined;

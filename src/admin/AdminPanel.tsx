@@ -203,6 +203,159 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'data', label: '数据' },
 ];
 
+/* ---------- 访问统计面板 ---------- */
+type StatData = {
+  totalViews: number;
+  perPost: { slug: string; views: number; reads: number; avg_duration: number }[];
+  byCountry: { country: string; c: number }[];
+  daily: { day: string; views: number; reads: number }[];
+};
+
+function StatsPanel() {
+  const [data, setData] = useState<StatData | null>(null);
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    setErr('');
+    try {
+      const site = loadSite();
+      const hash = site.settings?.adminPassHash || '';
+      const r = await fetch('/api/track', { headers: { 'x-admin-hash': hash } });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || '加载失败');
+      setData(j);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '加载失败');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const maxViews = Math.max(1, ...(data?.perPost.map((p) => p.views) || []));
+  const totalCountry = data?.byCountry.reduce((s, c) => s + c.c, 0) || 1;
+  const titleOf = (slug: string) => {
+    const p = loadSite().posts.find((x) => x.slug === slug);
+    return p?.title || slug;
+  };
+
+  return (
+    <section className="cyber-card p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="section-label">访问统计（D1 实时）</h2>
+        <button
+          type="button"
+          onClick={load}
+          disabled={loading}
+          className="px-3 py-1 text-xs text-cyan border border-cyan/40 hover:bg-cyan hover:text-void transition-all disabled:opacity-50"
+        >
+          {loading ? '刷新中…' : '刷新'}
+        </button>
+      </div>
+
+      {err && <p className="text-magenta text-xs mt-3">{err}</p>}
+
+      {data && (
+        <div className="mt-4 space-y-6">
+          {/* 总览 */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="border border-line p-3">
+              <div className="font-display text-2xl text-cyan">{data.totalViews}</div>
+              <div className="text-xs text-muted mt-1">总访问次数</div>
+            </div>
+            <div className="border border-line p-3">
+              <div className="font-display text-2xl text-cyan">{data.perPost.length}</div>
+              <div className="text-xs text-muted mt-1">有数据的文章</div>
+            </div>
+            <div className="border border-line p-3">
+              <div className="font-display text-2xl text-cyan">
+                {data.byCountry.length}
+              </div>
+              <div className="text-xs text-muted mt-1">国家/地区数</div>
+            </div>
+            <div className="border border-line p-3">
+              <div className="font-display text-2xl text-cyan">
+                {data.daily.length ? data.daily[data.daily.length - 1].views : 0}
+              </div>
+              <div className="text-xs text-muted mt-1">今日访问</div>
+            </div>
+          </div>
+
+          {/* 每篇文章阅读数 */}
+          <div>
+            <h3 className="text-xs font-mono text-muted mb-2">各文章阅读次数 / 平均时长</h3>
+            <div className="space-y-2">
+              {data.perPost.map((p) => (
+                <div key={p.slug} className="flex items-center gap-3">
+                  <div className="w-48 shrink-0 truncate text-sm text-slate-200" title={titleOf(p.slug)}>
+                    {titleOf(p.slug)}
+                  </div>
+                  <div className="h-2 flex-1 bg-void/60">
+                    <div
+                      className="h-full bg-cyan"
+                      style={{ width: `${(p.views / maxViews) * 100}%` }}
+                    />
+                  </div>
+                  <div className="w-16 shrink-0 text-right font-mono text-xs text-muted">
+                    {p.views} 次
+                  </div>
+                  <div className="w-20 shrink-0 text-right font-mono text-xs text-muted">
+                    {Math.round(p.avg_duration)}s 均
+                  </div>
+                </div>
+              ))}
+              {data.perPost.length === 0 && (
+                <p className="text-xs text-muted">暂无数据，访问文章后自动累计</p>
+              )}
+            </div>
+          </div>
+
+          {/* 国家占比 */}
+          <div>
+            <h3 className="text-xs font-mono text-muted mb-2">国家 / 地区占比</h3>
+            <div className="flex flex-wrap gap-2">
+              {data.byCountry.map((c) => (
+                <span
+                  key={c.country}
+                  className="border border-line px-2 py-1 font-mono text-xs text-slate-200"
+                >
+                  {c.country === 'XX' ? '未知' : c.country} ·{' '}
+                  <span className="text-cyan">
+                    {((c.c / totalCountry) * 100).toFixed(1)}%
+                  </span>
+                </span>
+              ))}
+              {data.byCountry.length === 0 && (
+                <p className="text-xs text-muted">暂无数据</p>
+              )}
+            </div>
+          </div>
+
+          {/* 近 14 天趋势 */}
+          <div>
+            <h3 className="text-xs font-mono text-muted mb-2">近 14 天趋势</h3>
+            <div className="flex items-end gap-1 h-24">
+              {data.daily.map((d) => (
+                <div
+                  key={d.day}
+                  className="flex-1 bg-cyan/30 hover:bg-cyan/60 transition-colors"
+                  style={{ height: `${(d.views / Math.max(1, ...data.daily.map((x) => x.views))) * 100}%` }}
+                  title={`${d.day}: ${d.views} 次访问`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function AdminPanel() {
   const [state, setState] = useState<SiteData>(() => loadSite());
   const [activeTab, setActiveTab] = useState<TabKey>('posts');
@@ -1416,6 +1569,9 @@ export default function AdminPanel() {
         {/* ===== 数据 ===== */}
         {activeTab === 'data' && (
           <div className="space-y-6">
+            {/* 访问统计面板 */}
+            <StatsPanel />
+
             <section className="cyber-card p-5">
               <label htmlFor="export-text" className="section-label block">
                 导出数据
