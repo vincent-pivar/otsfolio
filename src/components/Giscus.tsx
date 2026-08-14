@@ -26,15 +26,18 @@ export default function Giscus({ repo }: { repo: string }) {
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'bottom');
-    script.setAttribute('data-theme', 'dark');
+    script.setAttribute('data-theme', 'https://www.otscup.com/giscus-theme.css');
     script.setAttribute('data-lang', 'zh-CN');
     script.setAttribute('data-loading', 'lazy');
     ref.current.appendChild(script);
   }, [repo]);
 
   return (
-    <section className="mt-12 border-t border-white/10 pt-8" aria-label="评论">
-      <p className="section-label">// 评论</p>
+    <section className="mt-12 border-t border-line pt-8" aria-label="评论">
+      <p className="section-label">// 你确定不说点什么再走？</p>
+      <p className="mb-4 font-mono text-xs text-muted">
+        用 GitHub 账号留个脚印 — 支持 emoji（输入 <span className="text-cyan">:smile:</span>）和直接粘贴表情包图片。
+      </p>
       <div ref={ref} className="giscus" />
     </section>
   );

@@ -1,0 +1,105 @@
+/* otsfolio — Giscus 赛博朋克主题 */
+/* 覆盖 Giscus 官方 CSS 变量，贴合站点设计 token */
+:root {
+  --color-bg: #0d0d1a;
+  --color-fg: #d4d4f0;
+  --color-muted: #8a8aa8;
+  --color-border: #2a2a4a;
+  --color-primary: #00f0ff;          /* cyan */
+  --color-accent: #ff00a0;          /* magenta */
+  --color-success: #00f0ff;
+}
+
+.gsc-main {
+  background: transparent;
+}
+
+.gsc-header {
+  border-color: var(--color-border);
+}
+.gsc-header-text {
+  color: var(--color-fg);
+  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", monospace;
+  letter-spacing: 0.04em;
+}
+
+/* 评论输入框 */
+.gsc-comment-box {
+  background: #16162e;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.gsc-comment-box-textarea {
+  background: #0d0d1a;
+  color: var(--color-fg);
+  border-radius: 8px;
+}
+.gsc-comment-box-textarea::placeholder {
+  color: var(--color-muted);
+}
+
+/* 按钮：赛博霓虹描边 */
+.gsc-primary-button {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+  transition: all 0.2s ease;
+}
+.gsc-primary-button:hover {
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.7);
+}
+.gsc-secondary-button {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+/* 单条评论卡片 */
+.gsc-comment {
+  background: #16162e;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.gsc-comment-author {
+  color: var(--color-primary);
+  font-family: ui-monospace, monospace;
+}
+.gsc-comment-content {
+  color: var(--color-fg);
+}
+.gsc-comment-content a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.gsc-comment-content a:hover {
+  text-shadow: 0 0 8px rgba(255, 0, 160, 0.7);
+}
+
+/* reactions */
+.gsc-reactions,
+.gsc-reaction-button {
+  border-color: var(--color-border);
+}
+.gsc-reaction-button:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* 加载/footer 链接 */
+.gsc-footer,
+.gsc-meta-text {
+  color: var(--color-muted);
+}
+.gsc-footer a,
+.gsc-meta-link {
+  color: var(--color-primary);
+}
+
+/* 时间线竖线 */
+.gsc-timeline {
+  border-color: var(--color-border);
+}
