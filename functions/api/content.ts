@@ -44,12 +44,21 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** 校验管理员口令：前端传 SHA-256(pass) 哈希，与存储哈希比对 */
+/** 校验管理员口令：前端传 SHA-256(pass) 哈希，与 D1 中存储的 settings.adminPassHash 比对。
+ *  不依赖 wrangler secret（本机 Windows 注入 secret 有 UV_HANDLE_CLOSING bug），口令即单一数据源。 */
 async function authOk(request: Request, env: Env): Promise<boolean> {
-  if (!env.ADMIN_PASS_HASH) return true; // 未设口令时不拦（首次）
+  const raw = await readContent(env);
+  if (!raw) return true; // 尚未初始化（首次）：允许写入种子
   const h = request.headers.get('x-admin-hash');
   if (!h) return false;
-  return h === env.ADMIN_PASS_HASH;
+  try {
+    const data = JSON.parse(raw) as { settings?: { adminPassHash?: string } };
+    const stored = data.settings?.adminPassHash;
+    if (!stored) return true; // 后台未设口令：放行（由前端再设）
+    return h === stored;
+  } catch {
+    return false;
+  }
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {

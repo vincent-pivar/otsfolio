@@ -10,17 +10,19 @@
     background-size: 44px 44px;
   }
   ::selection { background: #00f0ff; color: #07070f; }
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: #07070f; }
-  ::-webkit-scrollbar-thumb { background: #232342; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.25); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,240,255,0.5); }
+  /* Firefox */
+  * { scrollbar-width: thin; scrollbar-color: rgba(0,240,255,0.25) rgba(255,255,255,0.04); }
 }
 
 @layer components {
   /* iOS 风格卡片：圆角 + 毛玻璃 + 细边框 + 柔和阴影（无切角，避免边线断开） */
   .cyber-card {
-    @apply relative rounded-2xl border border-white/10 bg-surface/70 backdrop-blur-md
-           shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300;
+    @apply relative rounded-2xl border border-white/10 bg-surface/60 backdrop-blur-md
+           shadow-[0_8px_30px_rgba(0,0,0,0.3)] transition-all duration-300;
   }
   .cyber-card:hover {
     @apply border-cyan/40 shadow-[0_10px_40px_rgba(0,240,255,0.12)];
@@ -105,4 +107,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* 触摸设备：禁用 hover 位移/变色残留，改用 active 即时反馈 */
+@media (hover: none) {
+  .cyber-card:hover { transform: none; }
+  .group:hover .group-scale { transform: none; }
 }

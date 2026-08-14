@@ -4,14 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        void: '#07070f',        // 页面最底色
-        surface: '#0e0e1a',     // 卡片底
-        elevated: '#15152a',    // 悬浮卡片
+        void: '#0d0d1a',        // 页面最底色（提亮，避免过黑）
+        surface: '#16162e',     // 卡片底
+        elevated: '#1e1e3a',    // 悬浮卡片
         cyan: '#00f0ff',        // 主霓虹
         magenta: '#ff00a0',     // 副霓虹
         lime: '#c8ff00',        // 强调/成功
-        muted: '#7a7a9c',       // 次级文字
-        line: '#232342',        // 描边
+        muted: '#8a8aae',       // 次级文字（提亮）
+        line: '#2c2c4e',        // 描边（提亮）
       },
       fontFamily: {
         display: ['Orbitron', 'ui-sans-serif', 'sans-serif'],

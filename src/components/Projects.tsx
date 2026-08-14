@@ -1,4 +1,5 @@
 import { useSite } from '../hooks/useSite';
+import { useState } from 'react';
 import type { Project } from '../types';
 
 const accentMap: Record<
@@ -27,6 +28,9 @@ const accentMap: Record<
 
 export default function Projects() {
   const { projects } = useSite();
+  const [showAll, setShowAll] = useState(false);
+  const featured = projects.slice(0, 2);
+  const visible = showAll ? projects : featured;
   return (
     <section id="projects" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 作品精选</p>
@@ -34,13 +38,40 @@ export default function Projects() {
         作品精选
       </h2>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-        {projects.map((p) => {
+      <div className="mt-6 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setShowAll(false)}
+          className={
+            'border px-4 py-2 font-mono text-xs transition-colors ' +
+            (!showAll
+              ? 'border-cyan bg-cyan/10 text-cyan'
+              : 'border-line text-muted hover:border-cyan hover:text-cyan')
+          }
+        >
+          精选作品
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className={
+            'border px-4 py-2 font-mono text-xs transition-colors ' +
+            (showAll
+              ? 'border-cyan bg-cyan/10 text-cyan'
+              : 'border-line text-muted hover:border-cyan hover:text-cyan')
+          }
+        >
+          全部作品
+        </button>
+      </div>
+
+      <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {visible.map((p) => {
           const a = accentMap[p.accent];
           return (
             <article
               key={p.id}
-              className={`cyber-card hover:-translate-y-1 ${a.hover} flex flex-col p-6 sm:p-7`}
+              className={`cyber-card hover:-translate-y-1 active:border-cyan/50 active:shadow-neon ${a.hover} flex flex-col p-6 sm:p-7`}
             >
               <div className="flex items-center justify-between">
                 <span

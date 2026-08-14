@@ -11,8 +11,10 @@ database_id = "977b2f2b-027e-4e7b-9e20-df57d4900afc"
 binding = "portfolio_assets"
 bucket_name = "portfolio-assets"
 
-# 后台登录校验 / 内容读写用的密钥（Cloudflare 控制台 → Turnstile → 站点密钥/私钥）
-# 本地未设置时，Functions 退化为纯口令校验，不影响开发。
-# 用以下命令注入：
-#   npx wrangler secret put ADMIN_PASS_HASH --project-name vincent-portfolio
-#   npx wrangler secret put TURNSTILE_SECRET --project-name vincent-portfolio
+# 鉴权说明（2026-08-14 调整）：
+#  - 云端写接口(/api/content PUT)的鉴权改从 D1 读取 settings.adminPassHash 比对，
+#    不再依赖 wrangler secret（本机 Windows 注入 secret 有 UV_HANDLE_CLOSING bug）。
+#    即：你在后台设的口令，就是云端写接口的密码。前端 pushToCloud 带 x-admin-hash。
+#  - TURNSTILE_SECRET 仍可注入以增强后台登录的真人验证；未注入时 Function 放行 Turnstile 校验，
+#    仅保留口令哈希鉴权。注入命令（其他环境）：
+#    npx wrangler secret put TURNSTILE_SECRET --project-name vincent-portfolio

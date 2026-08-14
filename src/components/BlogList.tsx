@@ -131,7 +131,7 @@ export default function BlogList() {
                       className="group block"
                       aria-label={`阅读文章：${post.title}`}
                     >
-                      <article className="cyber-card flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1">
+                      <article className="cyber-card flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1 active:border-cyan/50 active:shadow-neon">
                         {post.cover && (
                           <div className="overflow-hidden border-b border-line">
                             <img
