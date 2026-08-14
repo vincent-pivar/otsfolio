@@ -104,7 +104,7 @@ export default function BlogList() {
                               src={post.cover}
                               alt={`${post.title} 封面图`}
                               loading="lazy"
-                              className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              className="aspect-[2/1] w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
                         )}

@@ -27,6 +27,18 @@ export default function BlogPost({ slug }: { slug: string }) {
     );
   }
 
+  // 正文里若包含与封面相同的图片，剔除避免重复展示
+  const bodyForRender = useMemo(() => {
+    if (!post.cover) return post.body;
+    // 去掉与封面 src 完全一致的孤立图片行
+    return post.body
+      .split('\n')
+      .filter((line) => {
+        const m = line.match(/^!\[[^\]]*\]\(([^)\s]+)\)\s*$/);
+        return !(m && m[1] === post.cover);
+      })
+      .join('\n');
+  }, [post.body, post.cover]);
   const minutes = readingTime(post.body);
   const older = index + 1 < published.length ? published[index + 1] : undefined;
   const newer = index - 1 >= 0 ? published[index - 1] : undefined;
@@ -84,14 +96,14 @@ export default function BlogPost({ slug }: { slug: string }) {
               <img
                 src={post.cover}
                 alt={`${post.title} 封面图`}
-                className="w-full object-cover"
+                className="aspect-[2/1] w-full object-cover"
               />
             </div>
           )}
 
           <div
             className="prose-cyber mt-8 max-w-none"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(bodyForRender) }}
           />
 
           <footer className="mt-12 border-t border-line pt-6">

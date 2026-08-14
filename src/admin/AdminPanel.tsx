@@ -12,7 +12,7 @@ import type {
 import { autoExcerpt, slugify } from '../markdown';
 import { hashPass, logout } from '../auth';
 import MarkdownEditor from './MarkdownEditor';
-import { loadSite, saveSite, resetSite, exportSite, importSite, newId } from '../store';
+import { loadSite, saveSite, resetSite, exportSite, importSite, newId, pushToCloud } from '../store';
 
 /* ---------- 可复用子组件 ---------- */
 
@@ -261,6 +261,10 @@ export default function AdminPanel() {
       setShowSaved(true);
       if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
       savedTimeoutRef.current = setTimeout(() => setShowSaved(false), 2000);
+      // 同步到云端（D1）。失败不影响本地保存。
+      pushToCloud(state, state.settings.adminPassHash).then((ok) => {
+        if (ok) console.info('[portfolio] 已同步到云端');
+      });
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : '保存失败');
       setShowSaved(false);

@@ -115,6 +115,48 @@ canvas.scale(scale, scale)
       published: true,
     },
     {
+      id: 'w2',
+      slug: 'multi-model-failover',
+      title: 'AI 出题的多模型 failover：别让单点故障毁掉体验',
+      excerpt:
+        '答题挑战接入大模型自动出题后，我遇到的第一个问题不是质量，而是稳定性。推理模型返回 content=null 让我踩了一跤。',
+      cover: coverB,
+      body: `给「答题挑战」接 AI 出题时，我以为难点在提示词，实际难点在**稳定性**。
+
+![多模型回退架构](${coverB})
+
+## 第一次踩坑：content 是 null
+
+我最初选了一个推理型模型，本地测试没问题，上线后偶发返回空内容。排查发现推理模型会把内容放在 \`reasoning\` 字段，\`content\` 直接是 \`null\`：
+
+\`\`\`js
+const content = data.choices[0].message.content; // null
+\`\`\`
+
+## 解法：模型白名单 + 逐级回退
+
+我改成维护一个候选列表，逐个尝试直到成功：
+
+1. 首选快速指令模型
+2. 失败则换备用模型
+3. 全部失败则回退到本地题库
+
+关键是**每一层都要真的能兜住**，而不是层层抛错。
+
+## 部署在 Cloudflare 的额外好处
+
+Pages Functions 天然分布式，出题请求就近处理。零服务器成本，免费额度对个人项目完全够用。
+
+> 免费不是重点，重点是不用管运维。
+
+## 小结
+
+接入 AI 的工程量，八成在容错而非调用本身。`,
+      tags: ['AI 集成', 'Cloudflare', '容错设计'],
+      date: '2026-08-02',
+      published: true,
+    },
+    {
       id: 'w3',
       slug: 'site-launch-cyber-portfolio',
       title: '开站公告：这个赛博朋克作品集是怎么搭起来的',

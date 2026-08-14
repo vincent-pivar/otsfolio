@@ -2,7 +2,17 @@ name = "vincent-portfolio"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 
-# 后台登录校验用的密钥（Cloudflare 控制台 → Turnstile → 站点密钥/私钥）
+[[d1_databases]]
+binding = "portfolio_content"
+database_name = "portfolio-content"
+database_id = "977b2f2b-027e-4e7b-9e20-df57d4900afc"
+
+[[r2_buckets]]
+binding = "portfolio_assets"
+bucket_name = "portfolio-assets"
+
+# 后台登录校验 / 内容读写用的密钥（Cloudflare 控制台 → Turnstile → 站点密钥/私钥）
 # 本地未设置时，Functions 退化为纯口令校验，不影响开发。
-[vars]
-# ADMIN_PASS_HASH 由后台设置流程生成，部署时通过 secrets 注入更安全
+# 用以下命令注入：
+#   npx wrangler secret put ADMIN_PASS_HASH --project-name vincent-portfolio
+#   npx wrangler secret put TURNSTILE_SECRET --project-name vincent-portfolio

@@ -5,24 +5,68 @@ import { defaultSite } from './defaultSite';
 /**
  * 数据访问层 —— 前台与后台都只通过这里读写内容。
  *
- * 【本地阶段】localStorage
- * 【云端阶段】把下面两个函数改成：
- *   loadSite: const r = await fetch('/api/content'); return r.json();
- *   saveSite: await fetch('/api/content', {method:'PUT', body: JSON.stringify(data)});
- * 其余代码零改动。
+ * 双模式自动切换：
+ *  - 本地开发 / 云端不可达：localStorage
+ *  - 部署到 Cloudflare Pages（存在 /api/content）：云端 D1 为主，localStorage 为初始缓存
+ * 组件与后台 UI 无需关心数据存在哪。
  */
 
-export function loadSite(): SiteData {
+const CLOUD_URL = '/api/content';
+
+function fromStorage(): SiteData {
   if (typeof localStorage === 'undefined') return defaultSite;
   try {
     const raw = localStorage.getItem(SITE_STORE_KEY);
     if (!raw) return defaultSite;
     const parsed = JSON.parse(raw) as SiteData;
-    // 版本不匹配时回退到默认内容，避免结构错乱导致白屏
     if (parsed.version !== SITE_VERSION) return defaultSite;
     return normalize(parsed);
   } catch {
     return defaultSite;
+  }
+}
+
+/** 把云端数据写回 localStorage（作为缓存，离线也能渲染） */
+function cacheLocal(data: SiteData): void {
+  try {
+    localStorage.setItem(SITE_STORE_KEY, JSON.stringify({ ...data, version: SITE_VERSION }));
+  } catch {
+    /* 配额满忽略 */
+  }
+}
+
+export function loadSite(): SiteData {
+  return fromStorage();
+}
+
+/** 云端同步：拉取 D1 内容覆盖本地缓存。返回是否成功拉到数据。 */
+export async function syncFromCloud(): Promise<boolean> {
+  try {
+    const r = await fetch(CLOUD_URL, { cache: 'no-store' });
+    if (!r.ok) return false;
+    const j = (await r.json()) as { ok: boolean; data: SiteData | null };
+    if (!j.ok || !j.data) return false;
+    cacheLocal(j.data);
+    return true;
+  } catch {
+    return false; // 离线 / 部署环境无 Function
+  }
+}
+
+/** 云端写入：PUT 到 /api/content。需传入后台口令哈希做鉴权。 */
+export async function pushToCloud(data: SiteData, adminHash: string): Promise<boolean> {
+  try {
+    const r = await fetch(CLOUD_URL, {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+        'x-admin-hash': adminHash,
+      },
+      body: JSON.stringify({ data: { ...data, version: SITE_VERSION } }),
+    });
+    return r.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -31,7 +75,6 @@ export function saveSite(data: SiteData): void {
   try {
     localStorage.setItem(SITE_STORE_KEY, JSON.stringify(payload));
   } catch (e) {
-    // 配额超限最常见于封面图过多/过大
     const quota =
       e instanceof DOMException &&
       (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED');
@@ -41,7 +84,6 @@ export function saveSite(data: SiteData): void {
         : '保存失败：' + (e instanceof Error ? e.message : String(e)),
     );
   }
-  // 通知同页其它组件刷新
   window.dispatchEvent(new CustomEvent('site-updated'));
 }
 
