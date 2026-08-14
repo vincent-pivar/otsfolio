@@ -6,7 +6,6 @@ import Projects from './Projects';
 import Timeline from './Timeline';
 import Skills from './Skills';
 import Contact from './Contact';
-import LatestPosts from './LatestPosts';
 import MatrixRain from './MatrixRain';
 import CursorGlow from './CursorGlow';
 import ScrollProgress from './ScrollProgress';
@@ -51,9 +50,6 @@ export default function SiteView() {
         </Reveal>
         <Reveal>
           <Projects />
-        </Reveal>
-        <Reveal>
-          <LatestPosts />
         </Reveal>
         <Reveal>
           <Timeline />
