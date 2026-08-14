@@ -29,8 +29,8 @@ const accentMap: Record<
 export default function Projects() {
   const { projects } = useSite();
   const [showAll, setShowAll] = useState(false);
-  const featured = projects.slice(0, 2);
-  const visible = showAll ? projects : featured;
+  const featuredList = projects.filter((p) => p.featured);
+  const visible = showAll ? projects : featuredList;
   return (
     <section id="projects" className="mx-auto max-w-6xl px-6 py-24">
       <p className="section-label">// 作品精选</p>
@@ -66,7 +66,12 @@ export default function Projects() {
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-        {visible.map((p) => {
+        {visible.length === 0 ? (
+          <p className="col-span-full cyber-card p-8 text-center font-mono text-sm text-muted">
+            暂无精选作品，前往后台「项目」勾选要展示的项目
+          </p>
+        ) : (
+          visible.map((p) => {
           const a = accentMap[p.accent];
           return (
             <article
@@ -140,7 +145,8 @@ export default function Projects() {
               </div>
             </article>
           );
-        })}
+        })
+        )}
       </div>
     </section>
   );

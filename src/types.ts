@@ -25,6 +25,8 @@ export type Project = {
   link?: string;
   status: '已上线' | '开发中';
   accent: 'cyan' | 'magenta' | 'lime';
+  /** 是否在前台"作品精选"区展示（勾选几个展示几个） */
+  featured?: boolean;
   /** 封面图：本地阶段为 dataURL，云端阶段为 R2 公开地址 */
   cover?: string;
 };

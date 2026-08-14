@@ -52,6 +52,7 @@ export const defaultSite: SiteData = {
     link: p.link,
     status: p.status,
     accent: p.accent,
+    featured: i < 2,
   })),
   timeline: timeline.map((t, i) => ({
     id: `t${i + 1}`,

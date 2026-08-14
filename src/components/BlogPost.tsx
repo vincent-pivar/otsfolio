@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import { useSite } from '../hooks/useSite';
 import { renderMarkdown, readingTime } from '../markdown';
 import Giscus from './Giscus';
@@ -76,6 +76,21 @@ export default function BlogPost({ slug }: { slug: string }) {
     };
   }, [post?.slug]);
   const minutes = readingTime(post.body);
+  const [copied, setCopied] = useState(false);
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/#/blog/${post.slug}`
+      : '';
+  const shareTitle = post.title;
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
   const sameAuthor = published.filter((p) => p.author === post.author);
   const saIndex = sameAuthor.findIndex((p) => p.slug === slug);
   const older = saIndex + 1 < sameAuthor.length ? sameAuthor[saIndex + 1] : undefined;
@@ -176,6 +191,42 @@ export default function BlogPost({ slug }: { slug: string }) {
               </div>
             </div>
           </footer>
+
+          {/* 一键分享 */}
+          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6">
+            <span className="font-mono text-xs text-muted">分享：</span>
+            <button
+              type="button"
+              onClick={copyLink}
+              className="border border-cyan/50 px-3 py-1.5 font-mono text-xs text-cyan transition-colors hover:bg-cyan hover:text-void"
+            >
+              {copied ? '✓ 已复制' : '复制链接'}
+            </button>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-line px-3 py-1.5 font-mono text-xs text-slate-300 transition-colors hover:border-cyan hover:text-cyan"
+            >
+              Twitter / X
+            </a>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-line px-3 py-1.5 font-mono text-xs text-slate-300 transition-colors hover:border-cyan hover:text-cyan"
+            >
+              Facebook
+            </a>
+            <a
+              href={`https://service.weibo.com/share/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-line px-3 py-1.5 font-mono text-xs text-slate-300 transition-colors hover:border-cyan hover:text-cyan"
+            >
+              微博
+            </a>
+          </div>
 
           {settings.commentsRepo && (
             <Giscus repo={settings.commentsRepo} />

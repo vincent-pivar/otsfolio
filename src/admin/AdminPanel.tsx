@@ -1542,6 +1542,18 @@ export default function AdminPanel() {
                       { value: 'lime', label: '黄绿' },
                     ]}
                   />
+                  <div className="flex items-center gap-2 lg:col-span-2">
+                    <input
+                      type="checkbox"
+                      id={`project-featured-${p.id}`}
+                      checked={!!p.featured}
+                      onChange={(e) => updateProject(p.id, { featured: e.target.checked })}
+                      className="h-4 w-4 accent-cyan"
+                    />
+                    <label htmlFor={`project-featured-${p.id}`} className="font-mono text-xs text-slate-200">
+                      在前台「作品精选」区展示（勾选几个展示几个）
+                    </label>
+                  </div>
                   <div className="lg:col-span-2">
                     <TextField
                       id={`project-link-${p.id}`}
