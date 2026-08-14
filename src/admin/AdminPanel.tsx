@@ -280,26 +280,31 @@ function StatsPanel() {
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">{data.totalViews}</div>
               <div className="text-xs text-muted mt-1">总访问次数</div>
+              <div className="text-[10px] text-line mt-0.5 leading-tight">所有页面+文章的浏览量总和（同一人反复看会重复计）</div>
             </div>
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">{data.uniqueVisitors}</div>
               <div className="text-xs text-muted mt-1">真实访问人数</div>
+              <div className="text-[10px] text-line mt-0.5 leading-tight">按 IP 去重后的独立访客数（同一人只算 1 个）</div>
             </div>
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">{data.perPost.length}</div>
               <div className="text-xs text-muted mt-1">有数据的页面</div>
+              <div className="text-[10px] text-line mt-0.5 leading-tight">被访问过的页面/文章数量（不含无人看的）</div>
             </div>
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">
                 {data.byCountry.length}
               </div>
               <div className="text-xs text-muted mt-1">国家/地区数</div>
+              <div className="text-[10px] text-line mt-0.5 leading-tight">访客来源的国家分布（仅国家级，无省份）</div>
             </div>
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">
                 {data.daily.length ? data.daily[data.daily.length - 1].views : 0}
               </div>
               <div className="text-xs text-muted mt-1">今日访问</div>
+              <div className="text-[10px] text-line mt-0.5 leading-tight">当天（按 UTC）产生的访问次数</div>
             </div>
           </div>
 

@@ -38,6 +38,12 @@ export default function Hero() {
             查看作品
           </a>
           <a
+            href="#/blog"
+            className="btn-neon border-cyan/60 text-cyan hover:bg-cyan hover:text-void hover:shadow-neon"
+          >
+            查看博客
+          </a>
+          <a
             href="#contact"
             className="btn-neon border-magenta/60 text-magenta hover:bg-magenta hover:shadow-neon-magenta"
           >
