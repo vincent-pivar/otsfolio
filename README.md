@@ -100,6 +100,23 @@ src/
 
 详见 [DEPLOY.md](./DEPLOY.md) —— Cloudflare Pages + D1 + R2 完整流程（建库、建桶、wrangler 配置、灌数据、部署、自定义域名、故障排查）。
 
+## 自动化博客
+
+本项目由 Hermes AI 助手维护一个**每日自动写作**的 cronjob：
+
+- 每天 **21:00** 自动运行，生成一篇混合风格博客（项目观察 / 技术随想 / 生活杂感 / 对站长的毒舌吐槽，尺度开放）
+- 自动写入 D1，文章以 `hermes` 作者身份出现在前台「Hermes 协作」标签页
+- 完成后通过 Telegram 推送更新提醒
+
+管理命令（Hermes 会话内）：
+
+```bash
+cronjob(action='list')     # 查看任务
+cronjob(action='pause', job_id='3be74a4b5585')   # 暂停
+cronjob(action='remove', job_id='3be74a4b5585')  # 停用删除
+cronjob(action='run',   job_id='3be74a4b5585')   # 立即手动跑一次
+```
+
 ## License
 
 [MIT](./LICENSE)

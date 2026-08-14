@@ -20,9 +20,10 @@
 | 前端 | React 18 + TypeScript + Vite + Tailwind CSS |
 | 特效 | 矩阵雨背景、光标光斑、滚动进度（尊重 prefers-reduced-motion，装饰层 aria-hidden） |
 | 部署 | Cloudflare Pages（免费额度） |
-| 函数 | Pages Functions（后台登录校验 / Turnstile 验证） |
-| 存储（本地） | localStorage（文章 / 项目 / 时间线 / 设置） |
-| 存储（云端规划） | Cloudflare D1 + R2（store.ts 已预留 fetch 切换点，组件零改动） |
+| 函数 | Pages Functions（内容 GET/PUT、登录校验、访问统计埋点） |
+| 存储 | Cloudflare D1（SQLite，存站点内容 + 访问统计）+ R2（封面图） |
+| 鉴权 | D1 存储口令 SHA-256 加盐哈希，云端写接口二次校验（不依赖 wrangler secret） |
+| 统计 | D1 analytics 表（PV/UV/阅读时长/国家占比），后台 SVG 图表 |
 
 ## 3. 功能模块
 
@@ -41,6 +42,13 @@
 ### 3.3 评论（Giscus）
 - 基于 GitHub Discussions，零自建后端
 - 仓库配置化（settings.commentsRepo），未配置则不显示
+
+### 3.4 自动化博客（Hermes 每日写手）
+- 由 Hermes cronjob 每日 21:00 自动执行（job `3be74a4b5585`，deliver=telegram:PIVAR）
+- 流程：GET 站点数据取 adminPassHash → 生成混合博客（项目观察 / 技术随想 / 生活杂感 / 对站长的毒舌吐槽，尺度开放）→ PUT 写回 D1 → hermes send 推 Telegram 提醒
+- 文章 author=`hermes`，进前台「Hermes 协作」tab；slug 前缀 `auto-YYYYMMDD`
+- 管理：`cronjob(action='list'|'pause'|'remove'|'run')`，job_id `3be74a4b5585`
+- 触发依赖本机代理（直连 Cloudflare 不通，curl 带 `-x http://127.0.0.1:21081 -k`）
 
 ## 4. 设计系统
 
@@ -62,11 +70,10 @@
 
 ## 6. 待办 / 后续
 
-- [ ] Giscus 仓库接入（需公开 GitHub 仓库）
-- [ ] Turnstile 密钥注入（CF 控制台申请 + wrangler secret）
-- [ ] 注册系统评估（Google / 微信因资质/后端成本暂缓）
-- [ ] 云端存储迁移 D1 + R2
-- [ ] 绑定自有域名
+- [ ] Giscus 仓库接入（需公开 GitHub 仓库 + 安装 Giscus App）
+- [ ] Turnstile 密钥注入（CF 控制台申请 + wrangler secret；当前登录已改 D1 哈希校验，不阻塞）
+- [ ] 访问统计：真实多 IP 验证 UV 去重效果；考虑旧数据归档
+- [ ] 博客作者隔离：后台「我的文章」空状态友好提示（当前 Vincent 视角文章少）
 
 ## 7. 成本
 
@@ -82,3 +89,10 @@
 - [x] Markdown 插图 + XSS 防护单测通过
 - [x] 部署上线且线上实测渲染正常
 - [x] 总价博客 + 开站公告发布
+- [x] 云端 D1+R2 迁移 + 自定义域名 www.otscup.com 上线
+- [x] 后台口令鉴权修复（D1 哈希，错误口令被拒）
+- [x] 访问统计面板（折线图 7/30 天 + 国家甜甜圈 + 真实人数）
+- [x] 作品精选自定义勾选 + 文章一键分享
+- [x] 作者严格隔离（侧栏/导航按 author 过滤）
+- [x] 自动化博客 cronjob 每日 21:00 写文 + Telegram 提醒
+- [x] 开源：GitHub vincent-pivar/otsfolio（MIT + DEPLOY.md + 截图）
