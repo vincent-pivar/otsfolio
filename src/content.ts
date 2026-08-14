@@ -67,6 +67,49 @@ export const nav = [
   { id: 'hero', label: '首页' },
   { id: 'about', label: '关于' },
   { id: 'projects', label: '作品' },
+  { id: 'timeline', label: '历程' },
   { id: 'skills', label: '技能' },
   { id: 'contact', label: '联系' },
 ];
+
+export type TimelineItem = {
+  period: string;
+  title: string;
+  desc: string;
+  tags: string[];
+  current?: boolean;
+};
+
+/** 技术历程，从近到远 */
+export const timeline: TimelineItem[] = [
+  {
+    period: '进行中',
+    title: '乡墅通量尺宝 · 原生标注引擎',
+    desc:
+      '弃用 WebView 方案，改为 Kotlin + Canvas 自研标注引擎与 Matrix 手势系统，解决缩放精度与触摸响应问题，并在三星真机上打通相机链路。',
+    tags: ['Kotlin', 'Canvas', '真机调试'],
+    current: true,
+  },
+  {
+    period: '近期',
+    title: '答题挑战 · AI 出题上线',
+    desc:
+      '接入大模型自动生成题目，设计多模型 failover 机制避免单点故障；部署至 Cloudflare Pages，零服务器成本稳定运行。',
+    tags: ['AI 集成', 'Cloudflare', 'Serverless'],
+  },
+  {
+    period: '持续',
+    title: 'Agent 编排与自动化工作流',
+    desc:
+      '把多个 AI 编码工具编排成协作流水线：统一设计契约、并行分派任务、代码审查后集成，用自动化替代重复劳动。',
+    tags: ['Agent 编排', 'CLI 自动化', '工程规范'],
+  },
+  {
+    period: '基础',
+    title: 'Web 全栈与边缘计算',
+    desc:
+      '从传统前后端到边缘函数，掌握 React 生态与 Cloudflare Workers/D1/KV，偏好轻量、可控、低成本的技术选型。',
+    tags: ['React', 'TypeScript', 'Edge'],
+  },
+];
+
