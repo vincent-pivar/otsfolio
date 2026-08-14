@@ -76,11 +76,13 @@ export default function BlogPost({ slug }: { slug: string }) {
     };
   }, [post?.slug]);
   const minutes = readingTime(post.body);
-  const older = index + 1 < published.length ? published[index + 1] : undefined;
-  const newer = index - 1 >= 0 ? published[index - 1] : undefined;
+  const sameAuthor = published.filter((p) => p.author === post.author);
+  const saIndex = sameAuthor.findIndex((p) => p.slug === slug);
+  const older = saIndex + 1 < sameAuthor.length ? sameAuthor[saIndex + 1] : undefined;
+  const newer = saIndex - 1 >= 0 ? sameAuthor[saIndex - 1] : undefined;
 
-  // 相关文章：同标签优先，否则取最新
-  const related = published
+  // 相关文章：同作者内，同标签优先，否则取最新
+  const related = sameAuthor
     .filter((p) => p.slug !== post.slug)
     .map((p) => ({
       p,
@@ -206,7 +208,7 @@ export default function BlogPost({ slug }: { slug: string }) {
           <div className="cyber-card sticky top-24 p-5">
             <h3 className="section-label mb-3">全部文章</h3>
             <ul className="max-h-64 space-y-2 overflow-y-auto">
-              {published
+              {sameAuthor
                 .filter((p) => p.slug !== post.slug)
                 .map((p) => (
                   <li key={p.id}>

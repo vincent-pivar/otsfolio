@@ -1,50 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { verifyPass, markLoggedIn, hashPass } from '../auth';
 import { loadSite, saveSite } from '../store';
-
-type LoginMode = 'local' | 'cloud';
 
 /**
  * 后台登录闸门。
  * - 未设置口令：提示先设置（仍在本地）
- * - 已设置口令：校验
- *   若配置了 Turnstile 站点密钥，则渲染真人验证 widget，并把口令+token 发到
- *   /api/login（Pages Function）做服务端校验；否则沿用本地 SHA-256 校验。
+ * - 已设置口令：本地用 SHA-256(加盐) 哈希比对 D1 中 settings.adminPassHash
+ *   与云端写接口同源，稳定且不受网络影响。
+ *   注：Turnstile 真人验证因国内网络常加载失败，暂不渲染 widget；密钥仍存于设置中。
  */
 export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const site = loadSite();
   const hasPass = site.settings.adminPassHash !== '';
-  const turnstileKey = site.settings.turnstileSiteKey ?? '';
-  // 登录主校验走本地 D1 口令哈希（与云端写接口同源），稳定且不受网络影响。
-  // Turnstile 仅作可选展示（若配置了站点密钥），不阻塞登录。
-  const mode: LoginMode = 'local';
 
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const widgetRef = useRef<HTMLDivElement>(null);
-
-  // 挂载 Turnstile widget（配置了站点密钥时，作为可选展示，不阻塞登录）
-  useEffect(() => {
-    if (!turnstileKey || !widgetRef.current) return;
-    if (widgetRef.current.querySelector('script')) return;
-    const s = document.createElement('script');
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    s.async = true;
-    s.defer = true;
-    s.onload = () => {
-      const w = (window as unknown as { turnstile?: any }).turnstile;
-      if (!w || !widgetRef.current) return;
-      w.render(widgetRef.current, {
-        sitekey: turnstileKey,
-        callback: (t: string) => setToken(t),
-        'expired-callback': () => setToken(''),
-      });
-    };
-    document.body.appendChild(s);
-  }, [mode, turnstileKey]);
 
   const doLogin = async () => {
     setBusy(true);
@@ -154,10 +126,6 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
                 className="ios-input"
               />
             </div>
-          )}
-
-          {turnstileKey && hasPass && (
-            <div ref={widgetRef} className="min-h-[65px]" aria-label="真人验证（可选）" />
           )}
 
           {error && (
