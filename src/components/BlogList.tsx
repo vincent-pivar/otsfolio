@@ -86,7 +86,7 @@ export default function BlogList() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6">
                 {visible.map((post) => {
                   const minutes = readingTime(post.body);
                   const excerpt = post.excerpt || autoExcerpt(post.body);
@@ -97,47 +97,49 @@ export default function BlogList() {
                       className="group block"
                       aria-label={`阅读文章：${post.title}`}
                     >
-                      <article className="cyber-card flex h-full flex-col p-6 transition-transform duration-300 hover:-translate-y-1">
+                      <article className="cyber-card flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1">
                         {post.cover && (
-                          <div className="mb-4 overflow-hidden border border-line">
+                          <div className="overflow-hidden border-b border-line">
                             <img
                               src={post.cover}
                               alt={`${post.title} 封面图`}
                               loading="lazy"
-                              className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
                         )}
 
-                        <div className="mb-3 flex items-center gap-2 font-mono text-xs text-muted">
-                          <time dateTime={post.date}>{post.date}</time>
-                          <span aria-hidden="true">·</span>
-                          <span>{minutes} 分钟阅读</span>
-                        </div>
-
-                        <h3 className="break-words font-display text-xl font-bold text-slate-100 transition-colors group-hover:text-cyan">
-                          {post.title}
-                        </h3>
-
-                        <p className="prose-cyber mt-3 line-clamp-3 text-sm leading-relaxed text-slate-300">
-                          {excerpt}
-                        </p>
-
-                        {post.tags.length > 0 && (
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {post.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="border border-line px-2 py-0.5 font-mono text-xs text-muted"
-                              >
-                                {tag}
-                              </span>
-                            ))}
+                        <div className="flex flex-1 flex-col p-6">
+                          <div className="mb-3 flex items-center gap-2 font-mono text-xs text-muted">
+                            <time dateTime={post.date}>{post.date}</time>
+                            <span aria-hidden="true">·</span>
+                            <span>{minutes} 分钟阅读</span>
                           </div>
-                        )}
 
-                        <div className="mt-auto pt-5 font-mono text-xs text-cyan">
-                          阅读全文 →
+                          <h3 className="break-words font-display text-2xl font-bold text-slate-100 transition-colors group-hover:text-cyan">
+                            {post.title}
+                          </h3>
+
+                          <p className="prose-cyber mt-3 line-clamp-3 text-sm leading-relaxed text-slate-300">
+                            {excerpt}
+                          </p>
+
+                          {post.tags.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              {post.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="border border-line px-2 py-0.5 font-mono text-xs text-muted"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="mt-auto pt-5 font-mono text-xs text-cyan">
+                            阅读全文 →
+                          </div>
                         </div>
                       </article>
                     </a>

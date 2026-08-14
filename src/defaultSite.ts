@@ -2,6 +2,31 @@ import type { SiteData } from './types';
 import { SITE_VERSION } from './types';
 import { profile, socials, projects, timeline, skills } from './content';
 
+/** 生成一张赛博风封面图（内联 SVG → data URI，不依赖网络） */
+function cover(title: string, sub: string, c1: string, c2: string): string {
+  const lines = Array.from({ length: 15 }, (_, i) => {
+    const x = i * 80;
+    const y = i * 40;
+    return `<line x1="${x}" y1="0" x2="${x}" y2="600" stroke="${c1}" stroke-width="1.5" opacity="0.22"/>` +
+           `<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="${c1}" stroke-width="1.5" opacity="0.22"/>`;
+  }).join('');
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">` +
+      `<rect width="1200" height="600" fill="#07070f"/>` +
+      lines +
+      `<circle cx="1000" cy="150" r="160" fill="none" stroke="${c2}" stroke-width="3" opacity="0.7"/>` +
+      `<circle cx="1000" cy="150" r="80" fill="${c1}" opacity="0.22"/>` +
+      `<rect x="70" y="200" width="640" height="200" rx="6" fill="none" stroke="${c1}" stroke-width="2.5" opacity="0.75"/>` +
+      `<text x="100" y="300" font-family="monospace" font-size="76" font-weight="bold" fill="#e2e8f0">${title}</text>` +
+      `<text x="100" y="360" font-family="monospace" font-size="34" fill="${c1}">${sub}</text>` +
+      `<text x="100" y="545" font-family="monospace" font-size="26" fill="${c2}">// VINCENT</text>` +
+    `</svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+const coverA = cover('Canvas', '原生标注引擎', '#00f0ff', '#ff00a0');
+const coverB = cover('AI Failover', '多模型容错', '#ff00a0', '#00f0ff');
+
 /** 首次访问或数据损坏时使用的初始内容，来源于 content.ts */
 export const defaultSite: SiteData = {
   version: SITE_VERSION,
@@ -48,9 +73,12 @@ export const defaultSite: SiteData = {
       title: '为什么我把 WebView 方案换成了原生 Canvas',
       excerpt:
         '做量尺宝的标注功能时，我先用 WebView 走了一段弯路。dpr 缩放与触摸事件的不可靠，最终逼我回到 Kotlin 原生 Canvas。',
+      cover: coverA,
       body: `做「乡墅通量尺宝」的图形标注时，我最初选了 WebView 方案——毕竟 Web 技术栈熟，画布库现成，迭代快。
 
 结果踩了两个坑，最后不得不整体重写。
+
+![技术选型对比](${coverA})
 
 ## 坑一：dpr 缩放不可靠
 
@@ -92,7 +120,10 @@ canvas.scale(scale, scale)
       title: 'AI 出题的多模型 failover：别让单点故障毁掉体验',
       excerpt:
         '答题挑战接入大模型自动出题后，我遇到的第一个问题不是质量，而是稳定性。推理模型返回 content=null 让我踩了一跤。',
+      cover: coverB,
       body: `给「答题挑战」接 AI 出题时，我以为难点在提示词，实际难点在**稳定性**。
+
+![多模型回退架构](${coverB})
 
 ## 第一次踩坑：content 是 null
 
