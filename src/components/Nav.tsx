@@ -1,15 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { nav } from '../content';
 import { useSite } from '../hooks/useSite';
 
 export default function Nav() {
   const { profile } = useSite();
   const [open, setOpen] = useState(false);
+  const [hash, setHash] = useState(() => window.location.hash || '#/');
+
+  // 监听 hash 变化，动态高亮当前所在导航项
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash || '#/');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const isActive = (n: (typeof nav)[number]) => {
+    const cur = hash;
+    if (n.route) return cur.startsWith(n.route); // 博客：#/blog 任意子路由
+    return cur === `#${n.id}` || (n.id === 'hero' && (cur === '#/' || cur === ''));
+  };
 
   // 独立路由项（博客）优先展示，页内锚点跳过「首页」
   const items = nav.filter((n) => n.route || n.id !== 'hero');
 
   const hrefOf = (n: (typeof nav)[number]) => n.route ?? `#${n.id}`;
+
+  const linkCls = (n: (typeof nav)[number]) =>
+    'font-mono text-xs uppercase tracking-widest transition-colors ' +
+    (isActive(n)
+      ? 'text-cyan neon-text'
+      : 'text-muted hover:text-cyan');
 
   return (
     <header className="fixed top-0 z-40 w-full border-b border-line bg-void/80 backdrop-blur-md">
@@ -24,15 +44,7 @@ export default function Nav() {
         {/* 桌面导航 */}
         <nav className="hidden gap-7 md:flex" aria-label="主导航">
           {items.map((n) => (
-            <a
-              key={n.id}
-              href={hrefOf(n)}
-              className={
-                n.route
-                  ? 'font-mono text-xs uppercase tracking-widest text-cyan transition-colors hover:text-magenta'
-                  : 'font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-cyan'
-              }
-            >
+            <a key={n.id} href={hrefOf(n)} className={linkCls(n)}>
               {n.label}
             </a>
           ))}
@@ -68,9 +80,8 @@ export default function Nav() {
                   href={hrefOf(n)}
                   onClick={() => setOpen(false)}
                   className={
-                    n.route
-                      ? 'block font-mono text-sm uppercase tracking-widest text-cyan'
-                      : 'block font-mono text-sm uppercase tracking-widest text-muted'
+                    'block font-mono text-sm uppercase tracking-widest transition-colors ' +
+                    (isActive(n) ? 'text-cyan neon-text' : 'text-muted hover:text-cyan')
                   }
                 >
                   {n.label}

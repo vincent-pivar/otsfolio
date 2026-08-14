@@ -144,43 +144,44 @@ export default function BlogPost({ slug }: { slug: string }) {
           )}
         </article>
 
-        {/* 侧栏：相关文章 */}
-        <aside className="lg:pt-16">
+        {/* 侧栏：相关文章 + 全部文章（各自独立卡片，均排除当前篇） */}
+        <aside className="space-y-6 lg:pt-16">
           <div className="cyber-card sticky top-24 p-5">
             <h3 className="section-label mb-3">相关文章</h3>
             <ul className="space-y-3">
-              {related.map((p) => (
-                <li key={p.id} className="border-b border-line pb-3 last:border-0 last:pb-0">
-                  <a
-                    href={`#/blog/${p.slug}`}
-                    className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
-                  >
-                    {p.title}
-                  </a>
-                  <p className="mt-0.5 font-mono text-[10px] text-line">
-                    <time dateTime={p.date}>{p.date}</time>
-                  </p>
-                </li>
-              ))}
+              {related
+                .filter((p) => p.slug !== post.slug)
+                .map((p) => (
+                  <li key={p.id} className="border-b border-line pb-3 last:border-0 last:pb-0">
+                    <a
+                      href={`#/blog/${p.slug}`}
+                      className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
+                    >
+                      {p.title}
+                    </a>
+                    <p className="mt-0.5 font-mono text-[10px] text-line">
+                      <time dateTime={p.date}>{p.date}</time>
+                    </p>
+                  </li>
+                ))}
             </ul>
+          </div>
 
-            <h3 className="section-label mb-3 mt-6">全部文章</h3>
+          <div className="cyber-card sticky top-24 p-5">
+            <h3 className="section-label mb-3">全部文章</h3>
             <ul className="max-h-64 space-y-2 overflow-y-auto">
-              {published.map((p) => (
-                <li key={p.id}>
-                  <a
-                    href={`#/blog/${p.slug}`}
-                    className={
-                      'block break-words font-body text-sm transition-colors ' +
-                      (p.slug === post.slug
-                        ? 'text-cyan'
-                        : 'text-slate-300 hover:text-cyan')
-                    }
-                  >
-                    {p.title}
-                  </a>
-                </li>
-              ))}
+              {published
+                .filter((p) => p.slug !== post.slug)
+                .map((p) => (
+                  <li key={p.id}>
+                    <a
+                      href={`#/blog/${p.slug}`}
+                      className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
+                    >
+                      {p.title}
+                    </a>
+                  </li>
+                ))}
             </ul>
           </div>
         </aside>
