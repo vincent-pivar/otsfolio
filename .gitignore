@@ -1,0 +1,7 @@
+node_modules
+dist
+shot*.png
+sec-*.png
+shot.cjs
+.DS_Store
+*.local

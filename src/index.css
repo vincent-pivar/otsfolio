@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-void text-slate-200 font-body antialiased;
+    background-image: theme('backgroundImage.grid');
+    background-size: 44px 44px;
+  }
+  ::selection { background: #00f0ff; color: #07070f; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #07070f; }
+  ::-webkit-scrollbar-thumb { background: #232342; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+}
+
+@layer components {
+  /* 赛博卡片：切角 + 霓虹描边 */
+  .cyber-card {
+    @apply relative bg-surface/80 border border-line backdrop-blur-sm transition-all duration-300;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+  .cyber-card:hover { @apply border-cyan/60 shadow-neon; }
+
+  .neon-text { text-shadow: 0 0 8px rgba(0,240,255,.6); }
+
+  /* 故障字效，配合 data-text 属性使用 */
+  .glitch { position: relative; }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+    clip-path: inset(0 0 0 0);
+  }
+  .glitch::before { left: 2px; text-shadow: -2px 0 #ff00a0; animation: glitch-a 3s infinite linear alternate-reverse; }
+  .glitch::after  { left: -2px; text-shadow: 2px 0 #00f0ff; animation: glitch-b 2.4s infinite linear alternate-reverse; }
+
+  @keyframes glitch-a {
+    0%,100% { clip-path: inset(0 0 92% 0); } 20% { clip-path: inset(28% 0 55% 0); }
+    40% { clip-path: inset(62% 0 22% 0); } 60% { clip-path: inset(12% 0 78% 0); } 80% { clip-path: inset(84% 0 4% 0); }
+  }
+  @keyframes glitch-b {
+    0%,100% { clip-path: inset(86% 0 2% 0); } 25% { clip-path: inset(18% 0 68% 0); }
+    50% { clip-path: inset(52% 0 34% 0); } 75% { clip-path: inset(70% 0 16% 0); }
+  }
+
+  .btn-neon {
+    @apply relative px-6 py-3 font-display font-bold tracking-wider text-cyan border border-cyan/60 bg-cyan/5
+           transition-all duration-300 hover:bg-cyan hover:text-void hover:shadow-neon uppercase text-sm;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+
+  .section-label {
+    @apply font-mono text-xs tracking-[0.3em] text-magenta uppercase mb-3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
