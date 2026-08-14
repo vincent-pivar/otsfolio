@@ -1,85 +1,78 @@
-/*! otsfolio 赛博朋克 Giscus 主题 — 基于 GitHub Primer 变量覆盖 */
+/*! otsfolio 赛博朋克 Giscus 主题 — Primer 变量覆盖（外链版） */
 :root {
-  /* 画布（背景） */
   --color-canvas-default: #0d0d1a;
-  --color-canvas-subtle: #16162e;
-  --color-canvas-inset: #07070f;
+  --color-canvas-subtle: #14142e;
+  --color-canvas-inset: #0a0a18;
   --color-canvas-overlay: #16162e;
-
-  /* 文字 */
-  --color-fg-default: #d4d4f0;     /* 主文字：亮灰紫，避免黑字看不清 */
-  --color-fg-muted: #9a9ac0;      /* 次要文字 */
-  --color-fg-subtle: #6e6e95;
-
-  /* 边框 */
-  --color-border-default: #2f2f55;  /* 明显但不过亮 */
-  --color-border-muted: #24244a;
-
-  /* 强调色（链接/高亮）→ 青 */
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #aab4d4;
+  --color-fg-subtle: #6e7693;
+  --color-border-default: #2a2a5a;
+  --color-border-muted: #20204a;
   --color-accent-fg: #00f0ff;
   --color-accent-emphasis: #00f0ff;
-  --color-accent-muted: rgba(0, 240, 255, 0.15);
-  --color-accent-subtle: rgba(0, 240, 255, 0.1);
-
-  /* 按钮 */
-  --color-btn-text: #d4d4f0;
-  --color-btn-bg: #1e1e3a;
-  --color-btn-border: #2f2f55;
-  --color-btn-hover-bg: #28284f;
+  --color-accent-muted: rgba(0, 240, 255, 0.18);
+  --color-btn-text: #e6edf3;
+  --color-btn-bg: #1a1a3a;
+  --color-btn-border: #00f0ff;
+  --color-btn-hover-bg: #232352;
   --color-btn-hover-border: #00f0ff;
-  --color-btn-primary-text: #0d0d1a;     /* 青按钮配深字，清晰 */
+  --color-btn-primary-text: #0d0d1a;
   --color-btn-primary-bg: #00f0ff;
   --color-btn-primary-border: #00f0ff;
-  --color-btn-primary-hover-bg: #5cf6ff;
-
-  /* 成功/危险（reactions 等） */
   --color-success-fg: #00f0ff;
   --color-danger-fg: #ff00a0;
-  --color-danger-subtle: rgba(255, 0, 160, 0.12);
-
-  /* 代码块 prettylights（评论里代码） */
-  --color-prettylights-syntax-comment: #8a8aa8;
-  --color-prettylights-syntax-entity-tag: #00f0ff;
-  --color-prettylights-syntax-string: #5cf6ff;
 }
 
-/* 双保险：具体类再显式指定，防止个别元素不继承变量 */
+/* 评论卡片：青色霓虹描边 + 辉光 */
 main .gsc-comment-box,
 main .gsc-comment {
-  background: var(--color-canvas-subtle, #16162e) !important;
-  border: 1px solid var(--color-border-default, #2f2f55) !important;
-  border-radius: 12px;
+  background: #14142e !important;
+  border: 1px solid #00f0ff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.05) !important;
 }
 main .gsc-comment-box-textarea {
-  background: var(--color-canvas-inset, #07070f) !important;
-  color: var(--color-fg-default, #d4d4f0) !important;
-  border: 1px solid var(--color-border-muted, #24244a) !important;
-  border-radius: 8px;
+  background: #0a0a18 !important;
+  color: #e6edf3 !important;
+  border: 1px solid #2a2a5a !important;
+  border-radius: 8px !important;
+}
+main .gsc-comment-box-textarea:focus {
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+  outline: none !important;
 }
 main .gsc-comment-author {
-  color: var(--color-accent-fg, #00f0ff) !important;
-  font-weight: 600;
+  color: #00f0ff !important;
+  font-weight: 700;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.5) !important;
 }
-main .gsc-comment-content {
-  color: var(--color-fg-default, #d4d4f0) !important;
-}
+main .gsc-comment-content { color: #e6edf3 !important; }
 main .gsc-comment-content a {
-  color: var(--color-accent-fg, #00f0ff) !important;
-  text-decoration: none;
+  color: #ff00a0 !important;
+  text-shadow: 0 0 6px rgba(255, 0, 160, 0.4) !important;
 }
-main .gsc-reactions .gsc-reaction-button {
-  border-color: var(--color-border-default, #2f2f55) !important;
-  color: var(--color-fg-default, #d4d4f0) !important;
+main .gsc-reaction-button {
+  border-color: #2a2a5a !important;
+  color: #e6edf3 !important;
+  border-radius: 8px !important;
 }
-main .gsc-reactions .gsc-reaction-button:hover {
-  border-color: var(--color-accent-fg, #00f0ff) !important;
+main .gsc-reaction-button:hover {
+  border-color: #00f0ff !important;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.35) !important;
 }
 main .gsc-header-text,
 main .gsc-meta-text,
-main .gsc-footer {
-  color: var(--color-fg-muted, #9a9ac0) !important;
-}
+main .gsc-footer { color: #aab4d4 !important; }
 main .gsc-footer a,
-main .gsc-meta-link {
-  color: var(--color-accent-fg, #00f0ff) !important;
+main .gsc-meta-link { color: #00f0ff !important; }
+main .gsc-login-button,
+main .gsc-login-button-text {
+  background: #00f0ff !important;
+  color: #0d0d1a !important;
+  border-color: #00f0ff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+  font-weight: 600;
 }
