@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useSite } from '../hooks/useSite';
 import { renderMarkdown, readingTime } from '../markdown';
+import Giscus from './Giscus';
 
 export default function BlogPost({ slug }: { slug: string }) {
-  const { posts } = useSite();
+  const { posts, settings } = useSite();
   const published = useMemo(
     () =>
       posts
@@ -125,6 +126,10 @@ export default function BlogPost({ slug }: { slug: string }) {
               </div>
             </div>
           </footer>
+
+          {settings.commentsRepo && (
+            <Giscus repo={settings.commentsRepo} />
+          )}
         </article>
 
         {/* 侧栏：相关文章 */}

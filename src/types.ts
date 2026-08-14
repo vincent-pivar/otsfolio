@@ -74,6 +74,15 @@ export type Settings = {
    * 空字符串表示未设置口令，此时后台开放访问并提示用户设置。
    */
   adminPassHash: string;
+  /**
+   * Giscus 评论仓库（格式 owner/repo，须为公开仓库且已安装 Giscus App）。
+   * 留空则博客详情页不显示评论区。
+   */
+  commentsRepo?: string;
+  /**
+   * Cloudflare Turnstile 站点密钥。留空则后台登录不做真人验证（仅口令）。
+   */
+  turnstileSiteKey?: string;
 };
 
 export type Contact = {

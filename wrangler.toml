@@ -1,0 +1,8 @@
+name = "vincent-portfolio"
+pages_build_output_dir = "dist"
+compatibility_date = "2024-09-23"
+
+# 后台登录校验用的密钥（Cloudflare 控制台 → Turnstile → 站点密钥/私钥）
+# 本地未设置时，Functions 退化为纯口令校验，不影响开发。
+[vars]
+# ADMIN_PASS_HASH 由后台设置流程生成，部署时通过 secrets 注入更安全

@@ -1,31 +1,71 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { verifyPass, markLoggedIn, hashPass } from '../auth';
 import { loadSite, saveSite } from '../store';
 
+type LoginMode = 'local' | 'cloud';
+
 /**
  * 后台登录闸门。
- * 未设置口令时提示先设置；已设置则要求验证。
+ * - 未设置口令：提示先设置（仍在本地）
+ * - 已设置口令：校验
+ *   若配置了 Turnstile 站点密钥，则渲染真人验证 widget，并把口令+token 发到
+ *   /api/login（Pages Function）做服务端校验；否则沿用本地 SHA-256 校验。
  */
 export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const site = loadSite();
   const hasPass = site.settings.adminPassHash !== '';
+  const turnstileKey = site.settings.turnstileSiteKey ?? '';
+  const mode: LoginMode = turnstileKey ? 'cloud' : 'local';
 
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [token, setToken] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const widgetRef = useRef<HTMLDivElement>(null);
 
-  const handleLogin = async () => {
+  // 挂载 Turnstile widget（仅在 cloud 模式）
+  useEffect(() => {
+    if (mode !== 'cloud' || !widgetRef.current) return;
+    if (widgetRef.current.querySelector('script')) return;
+    const s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.async = true;
+    s.defer = true;
+    s.onload = () => {
+      const w = (window as unknown as { turnstile?: any }).turnstile;
+      if (!w || !widgetRef.current) return;
+      w.render(widgetRef.current, {
+        sitekey: turnstileKey,
+        callback: (t: string) => setToken(t),
+        'expired-callback': () => setToken(''),
+      });
+    };
+    document.body.appendChild(s);
+  }, [mode, turnstileKey]);
+
+  const doLogin = async () => {
     setBusy(true);
     setError('');
     try {
-      const ok = await verifyPass(pass, site.settings.adminPassHash);
-      if (ok) {
-        markLoggedIn();
-        onSuccess();
+      let ok = false;
+      if (mode === 'cloud') {
+        const hash = await hashPass(pass);
+        const r = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ pass: hash, token }),
+        });
+        const data = await r.json();
+        ok = !!data.ok;
+        if (!ok) setError(data.error || '验证失败');
       } else {
-        setError('口令不正确');
-        setPass('');
+        ok = await verifyPass(pass, site.settings.adminPassHash);
+        if (!ok) setError('口令不正确');
+      }
+      if (ok) {
+        if (mode === 'local') markLoggedIn();
+        onSuccess();
       }
     } catch {
       setError('校验失败，请重试');
@@ -33,6 +73,8 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
       setBusy(false);
     }
   };
+
+  const handleLogin = () => void doLogin();
 
   const handleSetup = async () => {
     if (pass.length < 6) {
@@ -101,7 +143,7 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
               autoFocus
               value={pass}
               onChange={(e) => setPass(e.target.value)}
-              className="w-full border border-line bg-void/60 px-3 py-2.5 text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+              className="ios-input"
             />
           </div>
 
@@ -119,9 +161,13 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full border border-line bg-void/60 px-3 py-2.5 text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                className="ios-input"
               />
             </div>
+          )}
+
+          {mode === 'cloud' && hasPass && (
+            <div ref={widgetRef} className="min-h-[65px]" aria-label="真人验证" />
           )}
 
           {error && (
