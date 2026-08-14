@@ -1,114 +1,108 @@
-# 赛博朋克风个人作品集
+# otsfolio
 
-React + TypeScript + Tailwind CSS 构建的个人作品集，含内容管理后台。
+> 赛博朋克风个人作品集 / Cyberpunk-style personal portfolio.
+
+一个用 **Vite + React + TypeScript + Tailwind CSS** 构建的单页作品集，自带内容管理后台、文章系统、访问统计与一键分享。已部署在 Cloudflare Pages，数据存于 **D1 + R2**。
+
+🌐 线上地址：https://www.otscup.com
+
+---
+
+## 功能
+
+- **赛博朋克视觉**：矩阵雨背景、光标跟随光效、霓虹/故障字标题、滚动进场动画（均响应 `prefers-reduced-motion`）
+- **作品集**：支持「精选」勾选（后台勾几个前台展几个）+ 全部作品切换
+- **博客系统**：Markdown 撰写、XSS 净化、标签、作者分离（Hermes 协作 / 我的文章）、相关文章 / 全部文章侧栏（按作者隔离）
+- **内容管理后台**：文章 / 项目 / 历程 / 技能 / 设置 / 数据统计，改动实时同步云端（D1）
+- **访问统计**：全站 PV、真实访问人数（IP 去重）、每篇文章阅读数与时长、近 7/30 天趋势折线图、国家占比甜甜圈（纯 SVG，零图表依赖）
+- **一键分享**：复制链接 / Twitter·X / Facebook / 微博
+- **评论**：Giscus（配置仓库后启用）
+
+## 技术栈
+
+| 层 | 选型 |
+|---|---|
+| 构建 | Vite |
+| 框架 | React 18 + TypeScript |
+| 样式 | Tailwind CSS（自定义赛博朋克 token，禁止硬编码颜色） |
+| 托管 | Cloudflare Pages（纯静态 + Functions） |
+| 数据 | Cloudflare D1（SQLite）+ R2（图片） |
+| 鉴权 | D1 存储口令 SHA-256 加盐哈希，云端写接口二次校验 |
 
 ## 本地运行
 
 ```bash
 npm install
-npm run dev      # 开发（热更新）→ http://127.0.0.1:5173
+npm run dev      # 开发热更新 → http://127.0.0.1:5173
 npm run build    # 生产构建 → dist/
 npm run preview  # 预览构建产物
+npm test         # Markdown 净化单测（34 项）
 ```
 
-## 页面路由
-
-哈希路由，静态托管无需服务端 rewrite。
+## 页面路由（哈希路由）
 
 | 地址 | 说明 |
 |---|---|
-| `#/` | 作品集前台 |
-| `#/admin` | 内容管理后台 |
-
-前台页脚右下有一个不显眼的 `·`，点击即进后台。
+| `#/` | 前台首页 |
+| `#/blog` | 博客列表 |
+| `#/blog/<slug>` | 文章详情 |
+| `#/admin` | 内容管理后台（页脚低调 `·` 入口） |
 
 ## 目录结构
 
 ```
 src/
 ├── types.ts            # 数据契约（SiteData 及各实体类型）
-├── store.ts            # 数据访问层 ★ 切换云端只改这里
+├── store.ts            # 数据访问层（localStorage ↔ D1 双模）
 ├── defaultSite.ts      # 初始内容（来源 content.ts）
 ├── content.ts          # 静态文案与导航配置
 ├── App.tsx             # 路由分发
 ├── components/         # 前台组件
-│   ├── SiteView.tsx    # 前台整体
-│   ├── Hero / About / Projects / Timeline / Skills / Contact
+│   ├── SiteView / Hero / About / Projects / Timeline / Skills / Contact
 │   ├── MatrixRain.tsx  # 矩阵雨背景
 │   ├── CursorGlow.tsx  # 鼠标跟随光效
-│   └── ScrollProgress.tsx
-├── admin/
-│   └── AdminPanel.tsx  # 内容管理后台
-└── hooks/
-    ├── useSite.ts      # 前台读取内容，后台保存后自动刷新
-    ├── useReveal.ts    # 滚动进场动画
-    └── useHashRoute.ts
+│   ├── ScrollProgress.tsx
+│   └── BlogPost.tsx     # 文章详情 + 分享 + 阅读埋点
+├── admin/AdminPanel.tsx # 内容管理后台 + 统计面板
+├── functions/api/      # Cloudflare Pages Functions
+│   ├── content.ts      # 内容 GET/PUT（D1 哈希鉴权）
+│   ├── login.ts        # 登录校验（D1 哈希）
+│   └── track.ts        # 访问埋点 + 聚合统计
+└── hooks/              # useSite / useReveal / useHashRoute
 ```
 
 ## 设计系统
 
-**禁止硬编码颜色**，一律使用 `tailwind.config.js` 中定义的语义色：
+禁止硬编码颜色，一律使用 `tailwind.config.js` 语义 token：
 
 | Token | 用途 |
 |---|---|
 | `void` / `surface` / `elevated` | 背景层级 |
-| `cyan` | 主霓虹色 |
-| `magenta` | 副霓虹色 |
-| `lime` | 强调色 |
+| `cyan` / `magenta` / `lime` | 霓虹主/副/强调色 |
 | `muted` | 次级文字 |
 | `line` | 描边 |
 
-中性文字用 `text-slate-100` / `text-slate-300`。
+## 数据存储（云端阶段）
 
-复用 `index.css` 中的组件类：`cyber-card`、`btn-neon`、`section-label`、`neon-text`、`glitch`。
-
-## 无障碍与性能
-
-- 所有动效响应 `prefers-reduced-motion`，用户关闭动画时自动降级
-- 装饰性图层标注 `aria-hidden`
-- 矩阵雨限帧约 18fps，DPR 上限 2
-- 鼠标光效仅在 `pointer: fine` 设备启用
-- 后台代码分包懒加载，不影响前台首屏
-
-## 数据存储
-
-当前为**本地阶段**：内容存于浏览器 `localStorage`，键 `cyber-portfolio-site-v1`。
-
-- 换浏览器或清缓存会丢失，请用后台「数据」页的导出功能备份
-- 封面图以 dataURL 存储，单张限制 400KB（localStorage 总量约 5MB）
-
-## 迁移到 Cloudflare（云端阶段）
-
-数据访问全部收敛在 `src/store.ts`，迁移只需改动该文件：
-
-```ts
-// 读取
-export async function loadSite(): Promise<SiteData> {
-  const r = await fetch('/api/content');
-  return r.json();
-}
-
-// 保存
-export async function saveSite(data: SiteData): Promise<void> {
-  await fetch('/api/content', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-}
-```
-
-配套需要：
-
-1. **D1 数据库**存 `SiteData` JSON
-2. **R2 存储桶**存封面图，后台改为上传后保存返回的 URL（替代 dataURL，解除 400KB 限制）
-3. **Pages Functions** 提供 `functions/api/content.ts`，处理 GET / PUT
-4. **访问控制**：后台需鉴权，可用 Cloudflare Access，或在 Functions 中校验密码并签发 Cookie
+- 内容存于 **D1**（`portfolio-content`），表 `site(id, data, updated_at)`
+- 封面图存于 **R2**（`portfolio-assets`），后台上传后保存 URL
+- 访问统计存于 D1 `analytics(slug, action, duration, country, ip_hash, day, ts)`
+- 后台写接口校验 `settings.adminPassHash`（SHA-256 加盐），与登录同源；云端写接口另有 D1 哈希二次校验
+- 前端 `store.ts` 优先读云端，本地 `localStorage` 作缓存
 
 ## 部署
 
+Cloudflare Pages 项目（构建命令 `npm run build`，输出目录 `dist`）。`wrangler.toml` 已绑定 D1 / R2。
+
 ```bash
 npm run build
-# dist/ 目录上传至 Cloudflare Pages
-# 构建命令 npm run build，输出目录 dist
+npx wrangler pages deploy dist --project-name=vincent-portfolio --branch=main
 ```
+
+## 隐私说明
+
+访问统计仅记录国家代码（Cloudflare `CF-IPCountry`）+ IP 哈希，不存储明文 IP；文章阅读时长由前端计时上报。
+
+## License
+
+MIT

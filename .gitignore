@@ -1,8 +1,14 @@
 node_modules
 dist
+.wrangler
+.dev.vars
+.env
+.env.*
+!.env.example
 shot*.png
 sec-*.png
 m-*.png
+*_v_*.png
 *.cjs
 tsconfig.tsbuildinfo
 .DS_Store

@@ -13,9 +13,9 @@ export default function Hero() {
 
         <h1
           className="glitch font-display text-5xl font-black leading-none tracking-tight text-cyan neon-text sm:text-7xl lg:text-8xl"
-          data-text={profile.name}
+          data-text="otsfolio"
         >
-          {profile.name}
+          otsfolio
         </h1>
 
         <div className="mt-6 flex items-center gap-3">

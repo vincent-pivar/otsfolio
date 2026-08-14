@@ -68,14 +68,23 @@ export default function SiteView() {
         <p>
           © {new Date().getFullYear()} {profile.name} — Built with React · Deployed on Cloudflare
         </p>
-        {/* 低调的后台入口 */}
-        <a
-          href="#/admin"
-          className="mt-2 inline-block text-[10px] text-line transition-colors hover:text-cyan"
-          title="内容管理"
-        >
-          ·
-        </a>
+        <div className="mt-3 flex items-center justify-center gap-4">
+          <a
+            href="https://github.com/Vincent-Pivar/otsfolio"
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted transition-colors hover:text-cyan"
+          >
+            GitHub ↗
+          </a>
+          <a
+            href="#/admin"
+            className="text-[10px] text-line transition-colors hover:text-cyan"
+            title="内容管理"
+          >
+            ·
+          </a>
+        </div>
       </footer>
     </div>
   );
