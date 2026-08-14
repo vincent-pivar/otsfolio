@@ -15,7 +15,9 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const site = loadSite();
   const hasPass = site.settings.adminPassHash !== '';
   const turnstileKey = site.settings.turnstileSiteKey ?? '';
-  const mode: LoginMode = turnstileKey ? 'cloud' : 'local';
+  // 登录主校验走本地 D1 口令哈希（与云端写接口同源），稳定且不受网络影响。
+  // Turnstile 仅作可选展示（若配置了站点密钥），不阻塞登录。
+  const mode: LoginMode = 'local';
 
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -24,9 +26,9 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [busy, setBusy] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
 
-  // 挂载 Turnstile widget（仅在 cloud 模式）
+  // 挂载 Turnstile widget（配置了站点密钥时，作为可选展示，不阻塞登录）
   useEffect(() => {
-    if (mode !== 'cloud' || !widgetRef.current) return;
+    if (!turnstileKey || !widgetRef.current) return;
     if (widgetRef.current.querySelector('script')) return;
     const s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
@@ -48,23 +50,11 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
     setBusy(true);
     setError('');
     try {
-      let ok = false;
-      if (mode === 'cloud') {
-        const hash = await hashPass(pass);
-        const r = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ pass: hash, token }),
-        });
-        const data = await r.json();
-        ok = !!data.ok;
-        if (!ok) setError(data.error || '验证失败');
-      } else {
-        ok = await verifyPass(pass, site.settings.adminPassHash);
-        if (!ok) setError('口令不正确');
-      }
+      // 本地比对 D1 口令哈希（与云端写接口同源）。云端写入接口另有 D1 哈希二次校验。
+      const ok = await verifyPass(pass, site.settings.adminPassHash);
+      if (!ok) setError('口令不正确');
       if (ok) {
-        if (mode === 'local') markLoggedIn();
+        markLoggedIn();
         onSuccess();
       }
     } catch {
@@ -166,8 +156,8 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
             </div>
           )}
 
-          {mode === 'cloud' && hasPass && (
-            <div ref={widgetRef} className="min-h-[65px]" aria-label="真人验证" />
+          {turnstileKey && hasPass && (
+            <div ref={widgetRef} className="min-h-[65px]" aria-label="真人验证（可选）" />
           )}
 
           {error && (

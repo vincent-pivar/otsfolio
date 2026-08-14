@@ -206,6 +206,7 @@ const TABS: { key: TabKey; label: string }[] = [
 /* ---------- 访问统计面板 ---------- */
 type StatData = {
   totalViews: number;
+  uniqueVisitors: number;
   perPost: { slug: string; views: number; reads: number; avg_duration: number }[];
   byCountry: { country: string; c: number }[];
   daily: { day: string; views: number; reads: number }[];
@@ -240,6 +241,18 @@ function StatsPanel() {
   const maxViews = Math.max(1, ...(data?.perPost.map((p) => p.views) || []));
   const totalCountry = data?.byCountry.reduce((s, c) => s + c.c, 0) || 1;
   const titleOf = (slug: string) => {
+    if (slug.startsWith('page:')) {
+      const map: Record<string, string> = {
+        home: '🏠 首页',
+        blog: '📝 博客列表',
+        about: '👤 关于',
+        projects: '💼 作品',
+        timeline: '📈 历程',
+        skills: '🛠 技能',
+        contact: '📮 联系',
+      };
+      return map[slug.slice(5)] || slug;
+    }
     const p = loadSite().posts.find((x) => x.slug === slug);
     return p?.title || slug;
   };
@@ -263,14 +276,18 @@ function StatsPanel() {
       {data && (
         <div className="mt-4 space-y-6">
           {/* 总览 */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">{data.totalViews}</div>
               <div className="text-xs text-muted mt-1">总访问次数</div>
             </div>
             <div className="border border-line p-3">
+              <div className="font-display text-2xl text-cyan">{data.uniqueVisitors}</div>
+              <div className="text-xs text-muted mt-1">真实访问人数</div>
+            </div>
+            <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">{data.perPost.length}</div>
-              <div className="text-xs text-muted mt-1">有数据的文章</div>
+              <div className="text-xs text-muted mt-1">有数据的页面</div>
             </div>
             <div className="border border-line p-3">
               <div className="font-display text-2xl text-cyan">

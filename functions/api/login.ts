@@ -1,12 +1,13 @@
 interface Env {
   TURNSTILE_SECRET: string;
-  ADMIN_PASS_HASH: string;
+  portfolio_content: D1Database;
 }
 
 /**
- * 后台登录校验：Cloudflare Turnstile 真人验证 + 口令哈希比对。
- * 仅当配置了 TURNSTILE_SECRET 时才强制验证 Turnstile。
- * 未配置时退化为纯口令校验（与本地阶段一致）。
+ * 后台登录校验。
+ * - 口令：前端传 SHA-256(加盐) 哈希，与 D1 中 settings.adminPassHash 比对
+ *   （与 content.ts 写接口共用同一数据源，不依赖 wrangler secret，避免本机注入失败导致鉴权失效）
+ * - Turnstile：仅当配置了 TURNSTILE_SECRET 时才强制验证；否则跳过（防止国内网络加载不出 widget 时把自己挡在门外）
  */
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
@@ -22,7 +23,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const pass = body.pass ?? '';
 
-  // Turnstile 验证（配置了密钥才强制）
+  // Turnstile 验证（仅在配置了私钥时才强制；未配置则放行，避免网络问题卡死登录）
   if (env.TURNSTILE_SECRET) {
     const token = body.token ?? '';
     if (!token) {
@@ -48,9 +49,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
   }
 
-  // 口令校验：前端传 SHA-256 哈希，与存储值比对
-  const given = await sha256(pass);
-  if (env.ADMIN_PASS_HASH && given !== env.ADMIN_PASS_HASH) {
+  // 口令校验：前端已传 SHA-256(加盐) 哈希，与 D1 中 settings.adminPassHash 直接比对
+  const stored = await readPassHash(env);
+  if (!stored) {
+    // 后台未设口令：放行（首次设置）
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+  if (pass !== stored) {
     return new Response(JSON.stringify({ ok: false, error: '口令不正确' }), {
       status: 401,
       headers: { 'content-type': 'application/json' },
@@ -61,6 +68,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     headers: { 'content-type': 'application/json' },
   });
 };
+
+async function readPassHash(env: Env): Promise<string> {
+  try {
+    const r = await env.portfolio_content
+      .prepare('SELECT data FROM site WHERE id = ?')
+      .bind('1')
+      .first<{ data: string }>();
+    if (!r?.data) return '';
+    const data = JSON.parse(r.data) as { settings?: { adminPassHash?: string } };
+    return data.settings?.adminPassHash ?? '';
+  } catch {
+    return '';
+  }
+}
 
 async function sha256(s: string): Promise<string> {
   const data = new TextEncoder().encode('cyber-portfolio-v2' + s);

@@ -69,6 +69,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [hash]);
 
+  // 全站访问统计：每次路由切换记一条 view（后台不统计）
+  useEffect(() => {
+    if (isAdmin) return;
+    const routeSlug = isBlogPost
+      ? slug
+      : path === 'blog'
+        ? 'blog'
+        : path === ''
+          ? 'home'
+          : path.split('/')[0]; // about/projects/timeline/skills/contact
+    const send = () => {
+      const blob = new Blob([JSON.stringify({ slug: `page:${routeSlug}`, action: 'view' })], {
+        type: 'application/json',
+      });
+      if (navigator.sendBeacon) navigator.sendBeacon('/api/track', blob);
+    };
+    send();
+  }, [hash, isAdmin, isBlogPost, slug, path]);
+
   if (isAdmin) return <AdminRoute />;
   if (isBlogPost) return <BlogPostPage slug={slug} />;
   if (isBlogList) return <BlogListPage />;

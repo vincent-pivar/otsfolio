@@ -128,6 +128,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return json({
       ok: true,
       totalViews,
+      uniqueVisitors: (
+        await env.portfolio_content
+          .prepare(`SELECT COUNT(DISTINCT ip_hash) c FROM analytics WHERE action='view' ${sinceClause}`)
+          .bind(...params)
+          .first<{ c: number }>()
+      )?.c || 0,
       perPost: perPost.results,
       byCountry: byCountry.results,
       daily: daily.results.reverse(),
