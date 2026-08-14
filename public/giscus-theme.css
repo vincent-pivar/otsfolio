@@ -1,105 +1,98 @@
-/* otsfolio — Giscus 赛博朋克主题 */
-/* 覆盖 Giscus 官方 CSS 变量，贴合站点设计 token */
-:root {
-  --color-bg: #0d0d1a;
-  --color-fg: #d4d4f0;
-  --color-muted: #8a8aa8;
-  --color-border: #2a2a4a;
-  --color-primary: #00f0ff;          /* cyan */
-  --color-accent: #ff00a0;          /* magenta */
-  --color-success: #00f0ff;
+/*! otsfolio 赛博朋克 Giscus 主题 — 基于 GitHub Primer 变量覆盖 */
+main {
+  /* 画布（背景） */
+  --color-canvas-default: #0d0d1a;
+  --color-canvas-subtle: #16162e;
+  --color-canvas-inset: #07070f;
+  --color-canvas-overlay: #16162e;
+
+  /* 文字 */
+  --color-fg-default: #d4d4f0;     /* 主文字：亮灰紫，避免黑字看不清 */
+  --color-fg-muted: #9a9ac0;      /* 次要文字 */
+  --color-fg-subtle: #6e6e95;
+
+  /* 边框 */
+  --color-border-default: #2f2f55;  /* 明显但不过亮 */
+  --color-border-muted: #24244a;
+
+  /* 强调色（链接/高亮）→ 青 */
+  --color-accent-fg: #00f0ff;
+  --color-accent-emphasis: #00f0ff;
+  --color-accent-muted: rgba(0, 240, 255, 0.15);
+  --color-accent-subtle: rgba(0, 240, 255, 0.1);
+
+  /* 按钮 */
+  --color-btn-text: #d4d4f0;
+  --color-btn-bg: #1e1e3a;
+  --color-btn-border: #2f2f55;
+  --color-btn-hover-bg: #28284f;
+  --color-btn-hover-border: #00f0ff;
+  --color-btn-primary-text: #0d0d1a;     /* 青按钮配深字，清晰 */
+  --color-btn-primary-bg: #00f0ff;
+  --color-btn-primary-border: #00f0ff;
+  --color-btn-primary-hover-bg: #5cf6ff;
+
+  /* 成功/危险（reactions 等） */
+  --color-success-fg: #00f0ff;
+  --color-danger-fg: #ff00a0;
+  --color-danger-subtle: rgba(255, 0, 160, 0.12);
+
+  /* 代码块 prettylights（评论里代码） */
+  --color-prettylights-syntax-comment: #8a8aa8;
+  --color-prettylights-syntax-entity-tag: #00f0ff;
+  --color-prettylights-syntax-string: #5cf6ff;
 }
 
-.gsc-main {
-  background: transparent;
+/* 评论输入框：明确边框 + 亮字 */
+main .gsc-comment-box {
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-canvas-subtle);
+}
+main .gsc-comment-box-textarea {
+  background: var(--color-canvas-inset);
+  color: var(--color-fg-default);
+  border-radius: 8px;
+  border: 1px solid var(--color-border-muted);
+}
+main .gsc-comment-box-textarea::placeholder {
+  color: var(--color-fg-muted);
 }
 
-.gsc-header {
-  border-color: var(--color-border);
-}
-.gsc-header-text {
-  color: var(--color-fg);
-  font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", monospace;
-  letter-spacing: 0.04em;
-}
-
-/* 评论输入框 */
-.gsc-comment-box {
-  background: #16162e;
-  border: 1px solid var(--color-border);
+/* 评论卡片 */
+main .gsc-comment {
+  background: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
   border-radius: 12px;
 }
-.gsc-comment-box-textarea {
-  background: #0d0d1a;
-  color: var(--color-fg);
-  border-radius: 8px;
+main .gsc-comment-author {
+  color: var(--color-accent-fg);
+  font-weight: 600;
 }
-.gsc-comment-box-textarea::placeholder {
-  color: var(--color-muted);
-}
-
-/* 按钮：赛博霓虹描边 */
-.gsc-primary-button {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
-  transition: all 0.2s ease;
-}
-.gsc-primary-button:hover {
-  background: rgba(0, 240, 255, 0.12);
-  box-shadow: 0 0 14px rgba(0, 240, 255, 0.7);
-}
-.gsc-secondary-button {
-  background: transparent;
-  color: var(--color-muted);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-}
-
-/* 单条评论卡片 */
-.gsc-comment {
-  background: #16162e;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-}
-.gsc-comment-author {
-  color: var(--color-primary);
-  font-family: ui-monospace, monospace;
-}
-.gsc-comment-content {
-  color: var(--color-fg);
-}
-.gsc-comment-content a {
-  color: var(--color-accent);
+main .gsc-comment-content a {
+  color: var(--color-accent-fg);
   text-decoration: none;
 }
-.gsc-comment-content a:hover {
-  text-shadow: 0 0 8px rgba(255, 0, 160, 0.7);
+main .gsc-comment-content a:hover {
+  text-decoration: underline;
 }
 
-/* reactions */
-.gsc-reactions,
-.gsc-reaction-button {
-  border-color: var(--color-border);
+/* reactions 按钮边框 */
+main .gsc-reactions .gsc-reaction-button {
+  border-color: var(--color-border-default);
+  color: var(--color-fg-default);
 }
-.gsc-reaction-button:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
-}
-
-/* 加载/footer 链接 */
-.gsc-footer,
-.gsc-meta-text {
-  color: var(--color-muted);
-}
-.gsc-footer a,
-.gsc-meta-link {
-  color: var(--color-primary);
+main .gsc-reactions .gsc-reaction-button:hover {
+  border-color: var(--color-accent-fg);
 }
 
-/* 时间线竖线 */
-.gsc-timeline {
-  border-color: var(--color-border);
+/* 头部/footer 文字 */
+main .gsc-header-text,
+main .gsc-meta-text,
+main .gsc-footer {
+  color: var(--color-fg-muted);
+}
+main .gsc-footer a,
+main .gsc-meta-link {
+  color: var(--color-accent-fg);
 }

@@ -13,6 +13,13 @@ export default function Giscus({ repo }: { repo: string }) {
     // 避免重复注入脚本
     if (ref.current.querySelector('script')) return;
 
+    // 清掉可能缓存的旧主题（dark），强制用自定义赛博主题
+    try {
+      localStorage.removeItem('giscus-theme');
+    } catch {
+      /* ignore */
+    }
+
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.async = true;
