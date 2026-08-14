@@ -18,7 +18,13 @@
 - **一键分享**：复制链接 / Twitter·X / Facebook / 微博
 - **评论**：Giscus（配置仓库后启用）
 
-## 技术栈
+## 截图
+
+| 首页 | 博客列表 | 文章详情 | 作品 |
+|---|---|---|---|
+| ![首页](docs/01-home.png) | ![博客列表](docs/02-blog-list.png) | ![文章详情](docs/03-post.png) | ![作品](docs/04-projects.png) |
+
+
 
 | 层 | 选型 |
 |---|---|
@@ -92,17 +98,8 @@ src/
 
 ## 部署
 
-Cloudflare Pages 项目（构建命令 `npm run build`，输出目录 `dist`）。`wrangler.toml` 已绑定 D1 / R2。
-
-```bash
-npm run build
-npx wrangler pages deploy dist --project-name=vincent-portfolio --branch=main
-```
-
-## 隐私说明
-
-访问统计仅记录国家代码（Cloudflare `CF-IPCountry`）+ IP 哈希，不存储明文 IP；文章阅读时长由前端计时上报。
+详见 [DEPLOY.md](./DEPLOY.md) —— Cloudflare Pages + D1 + R2 完整流程（建库、建桶、wrangler 配置、灌数据、部署、自定义域名、故障排查）。
 
 ## License
 
-MIT
+[MIT](./LICENSE)
