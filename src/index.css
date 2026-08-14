@@ -54,6 +54,46 @@
   .section-label {
     @apply font-mono text-xs tracking-[0.3em] text-magenta uppercase mb-3;
   }
+
+  /* 后台 Markdown 编辑器工具栏按钮 */
+  .tool-btn {
+    @apply border border-line px-2.5 py-1 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan;
+  }
+
+  /* 博客正文排版：dangerouslySetInnerHTML 注入的 HTML 不走 Tailwind 扫描，
+     故在此统一设置样式。仅用设计 token 色，避免硬编码。 */
+  .prose-cyber {
+    color: theme('colors.slate.300');
+    line-height: 1.85;
+    font-size: 1.02rem;
+  }
+  .prose-cyber > * + * { @apply mt-5; }
+  .prose-cyber h1 { @apply font-display text-3xl font-bold text-slate-100 mt-10 mb-4; }
+  .prose-cyber h2 { @apply font-display text-2xl font-bold text-slate-100 mt-9 mb-3; }
+  .prose-cyber h3 { @apply font-display text-xl font-semibold text-slate-100 mt-7 mb-2; }
+  .prose-cyber h4 { @apply font-display text-lg font-semibold text-slate-200 mt-6 mb-2; }
+  .prose-cyber p { @apply text-slate-300 leading-relaxed; }
+  .prose-cyber a { @apply text-cyan underline decoration-cyan/40 underline-offset-2 hover:decoration-cyan; }
+  .prose-cyber strong { @apply font-semibold text-slate-100; }
+  .prose-cyber em { @apply italic text-slate-200; }
+  .prose-cyber ul { @apply list-disc pl-6 space-y-1.5 text-slate-300; }
+  .prose-cyber ol { @apply list-decimal pl-6 space-y-1.5 text-slate-300; }
+  .prose-cyber blockquote {
+    @apply border-l-2 border-magenta bg-magenta/5 py-2 pl-4 my-5 text-muted italic;
+  }
+  .prose-cyber img {
+    @apply mx-auto my-6 block max-w-full rounded border border-line;
+  }
+  .prose-cyber pre {
+    @apply my-5 overflow-x-auto border border-line bg-void/80 p-4 rounded;
+  }
+  .prose-cyber pre code {
+    @apply font-mono text-xs leading-relaxed text-lime;
+  }
+  .prose-cyber :not(pre) > code {
+    @apply rounded border border-line bg-void/70 px-1.5 py-0.5 font-mono text-[0.9em] text-lime;
+  }
+  .prose-cyber hr { @apply my-8 border-line; }
 }
 
 @media (prefers-reduced-motion: reduce) {

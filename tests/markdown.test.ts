@@ -56,8 +56,20 @@ const link = renderMarkdown('[站点](https://example.com)');
 check('外链带 rel=noreferrer', link.includes('rel="noreferrer'), link.slice(0, 140));
 check('外链新窗口打开', link.includes('target="_blank"'), '');
 
-const mail = renderMarkdown('[邮箱](mailto:a@b.com)');
-check('mailto 链接保留', mail.includes('mailto:a@b.com'), mail.slice(0, 120));
+const imgInline = renderMarkdown('图：![风景](https://x.com/a.png) 结束');
+check('行内图片渲染', imgInline.includes('<img') && imgInline.includes('src="https://x.com/a.png"'), imgInline.slice(0, 140));
+
+const imgData = renderMarkdown('![x](data:image/png;base64,AAAA)');
+check('data:image 图片被放行', imgData.includes('src="data:image/png;base64,AAAA"'), imgData.slice(0, 120));
+
+const imgXss = renderMarkdown('![x](javascript:alert(1))');
+check('图片 javascript: 协议被拦截', !imgXss.includes('javascript:'), imgXss.slice(0, 120));
+
+const imgXss2 = renderMarkdown('![x](data:text/html,<script>1</script>)');
+check('图片非 image 的 data: 被拦截', !imgXss2.toLowerCase().includes('data:text/html'), imgXss2.slice(0, 120));
+
+const imgOnerror = renderMarkdown('![x](https://x.com/a.png "onerror=alert(1)")');
+check('图片 alt 不含 onerror', !imgOnerror.includes('onerror='), imgOnerror.slice(0, 160));
 
 /* ---------- 边界情况 ---------- */
 

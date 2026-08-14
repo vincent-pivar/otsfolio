@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { autoExcerpt, slugify } from '../markdown';
 import { hashPass, logout } from '../auth';
+import MarkdownEditor from './MarkdownEditor';
 import { loadSite, saveSite, resetSite, exportSite, importSite, newId } from '../store';
 
 /* ---------- 可复用子组件 ---------- */
@@ -764,18 +765,13 @@ export default function AdminPanel() {
                           htmlFor={`post-body-${post.id}`}
                           className="mb-1.5 block font-mono text-xs tracking-wider text-muted"
                         >
-                          正文（支持 Markdown：# 标题 **粗体** `代码` &gt; 引用 - 列表）
+                          正文（Markdown，支持插入图片 / 加粗 / 标题 / 代码 / 列表 / 引用）
                         </label>
-                        <textarea
+                        <MarkdownEditor
                           id={`post-body-${post.id}`}
-                          rows={16}
                           value={post.body}
-                          onChange={(e) => updatePost(post.id, { body: e.target.value })}
-                          className="w-full resize-y border border-line bg-void/60 px-3 py-2 font-mono text-xs leading-relaxed text-slate-100 transition-all focus:border-cyan focus:shadow-neon focus:outline-none"
+                          onChange={(v) => updatePost(post.id, { body: v })}
                         />
-                        <p className="mt-1 font-mono text-[10px] text-line">
-                          {post.body.length} 字
-                        </p>
                       </div>
 
                       <StringListEditor

@@ -18,10 +18,12 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-/** 仅允许安全协议，阻断 javascript: / data: 等 */
-function safeUrl(url: string): string {
+/** 仅允许安全协议，阻断 javascript: / data: 等；
+ *  图片专用：额外放行 data:image/*（本地内联封面/插图） */
+function safeUrl(url: string, allowDataImage = false): string {
   const u = url.trim();
   if (/^(https?:\/\/|mailto:|\/|#|\.\/)/i.test(u)) return u;
+  if (allowDataImage && /^data:image\/(png|jpe?g|gif|webp|avif|svg\+xml);/i.test(u)) return u;
   return '#';
 }
 
@@ -34,6 +36,17 @@ function inline(text: string): string {
     codes.push(c);
     return `\u0000CODE${codes.length - 1}\u0000`;
   });
+
+  // 图片 ![alt](地址 "可选标题") —— 必须在链接之前，避免被链接规则误吞
+  // 注意：源码经 escapeHtml 后，双引号已变成 &quot;，故正则需要兼容两种写法
+  s = s.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)(?:\s+(?:"|&quot;)([^"]*)(?:"|&quot;))?\)/g,
+    (_m, alt, url) => {
+      const src = safeUrl(url, true);
+      const showAlt = alt ? alt : '图片';
+      return `<img src="${src}" alt="${showAlt}" loading="lazy" class="my-6 mx-auto block max-w-full rounded border border-line" />`;
+    },
+  );
 
   // 链接 [文字](地址)
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label, url) => {

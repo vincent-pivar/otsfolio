@@ -60,7 +60,7 @@ export default function BlogPost({ slug }: { slug: string }) {
       )}
 
       <div
-        className="mt-8"
+        className="prose-cyber mt-8"
         dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
       />
 
