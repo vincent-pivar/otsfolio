@@ -1,5 +1,5 @@
 /*! otsfolio 赛博朋克 Giscus 主题 — 基于 GitHub Primer 变量覆盖 */
-main {
+:root {
   /* 画布（背景） */
   --color-canvas-default: #0d0d1a;
   --color-canvas-subtle: #16162e;
@@ -43,56 +43,43 @@ main {
   --color-prettylights-syntax-string: #5cf6ff;
 }
 
-/* 评论输入框：明确边框 + 亮字 */
-main .gsc-comment-box {
-  border: 1px solid var(--color-border-default);
+/* 双保险：具体类再显式指定，防止个别元素不继承变量 */
+main .gsc-comment-box,
+main .gsc-comment {
+  background: var(--color-canvas-subtle, #16162e) !important;
+  border: 1px solid var(--color-border-default, #2f2f55) !important;
   border-radius: 12px;
-  background: var(--color-canvas-subtle);
 }
 main .gsc-comment-box-textarea {
-  background: var(--color-canvas-inset);
-  color: var(--color-fg-default);
+  background: var(--color-canvas-inset, #07070f) !important;
+  color: var(--color-fg-default, #d4d4f0) !important;
+  border: 1px solid var(--color-border-muted, #24244a) !important;
   border-radius: 8px;
-  border: 1px solid var(--color-border-muted);
-}
-main .gsc-comment-box-textarea::placeholder {
-  color: var(--color-fg-muted);
-}
-
-/* 评论卡片 */
-main .gsc-comment {
-  background: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-default);
-  border-radius: 12px;
 }
 main .gsc-comment-author {
-  color: var(--color-accent-fg);
+  color: var(--color-accent-fg, #00f0ff) !important;
   font-weight: 600;
 }
+main .gsc-comment-content {
+  color: var(--color-fg-default, #d4d4f0) !important;
+}
 main .gsc-comment-content a {
-  color: var(--color-accent-fg);
+  color: var(--color-accent-fg, #00f0ff) !important;
   text-decoration: none;
 }
-main .gsc-comment-content a:hover {
-  text-decoration: underline;
-}
-
-/* reactions 按钮边框 */
 main .gsc-reactions .gsc-reaction-button {
-  border-color: var(--color-border-default);
-  color: var(--color-fg-default);
+  border-color: var(--color-border-default, #2f2f55) !important;
+  color: var(--color-fg-default, #d4d4f0) !important;
 }
 main .gsc-reactions .gsc-reaction-button:hover {
-  border-color: var(--color-accent-fg);
+  border-color: var(--color-accent-fg, #00f0ff) !important;
 }
-
-/* 头部/footer 文字 */
 main .gsc-header-text,
 main .gsc-meta-text,
 main .gsc-footer {
-  color: var(--color-fg-muted);
+  color: var(--color-fg-muted, #9a9ac0) !important;
 }
 main .gsc-footer a,
 main .gsc-meta-link {
-  color: var(--color-accent-fg);
+  color: var(--color-accent-fg, #00f0ff) !important;
 }
