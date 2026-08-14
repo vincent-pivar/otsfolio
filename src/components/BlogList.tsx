@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSite } from '../hooks/useSite';
-import { autoExcerpt, readingTime } from '../markdown';
+import { autoExcerpt } from '../markdown';
 
 const PAGE = 6;
 
@@ -23,9 +23,9 @@ export default function BlogList() {
 
   const categories = useMemo(() => {
     const map = new Map<string, number>();
-    all.forEach((p) => p.tags.forEach((t) => map.set(t, (map.get(t) || 0) + 1)));
+    visibleByAuthor.forEach((p) => p.tags.forEach((t) => map.set(t, (map.get(t) || 0) + 1)));
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
-  }, [all]);
+  }, [visibleByAuthor]);
 
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState<string | null>(null);
@@ -120,9 +120,8 @@ export default function BlogList() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-4">
                 {visible.map((post) => {
-                  const minutes = readingTime(post.body);
                   const excerpt = post.excerpt || autoExcerpt(post.body);
                   return (
                     <a
@@ -131,35 +130,13 @@ export default function BlogList() {
                       className="group block"
                       aria-label={`阅读文章：${post.title}`}
                     >
-                      <article className="cyber-card flex h-full flex-col overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1 active:border-cyan/50 active:shadow-neon">
-                        {post.cover && (
-                          <div className="overflow-hidden border-b border-line">
-                            <img
-                              src={post.cover}
-                              alt={`${post.title} 封面图`}
-                              loading="lazy"
-                              className="aspect-[2/1] w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                          </div>
-                        )}
-
-                        <div className="flex flex-1 flex-col p-6">
-                          <div className="mb-3 flex items-center gap-2 font-mono text-xs text-muted">
-                            <time dateTime={post.date}>{post.date}</time>
-                            <span aria-hidden="true">·</span>
-                            <span>{minutes} 分钟阅读</span>
-                          </div>
-
-                          <h3 className="break-words font-display text-2xl font-bold text-slate-100 transition-colors group-hover:text-cyan">
+                      <article className="cyber-card flex items-center gap-4 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan/40 active:border-cyan/50 active:shadow-neon">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="break-words font-display text-xl font-bold text-slate-100 transition-colors group-hover:text-cyan">
                             {post.title}
                           </h3>
-
-                          <p className="prose-cyber mt-3 line-clamp-3 text-sm leading-relaxed text-slate-300">
-                            {excerpt}
-                          </p>
-
                           {post.tags.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                               {post.tags.map((tag) => (
                                 <span
                                   key={tag}
@@ -170,11 +147,13 @@ export default function BlogList() {
                               ))}
                             </div>
                           )}
-
-                          <div className="mt-auto pt-5 font-mono text-xs text-cyan">
-                            阅读全文 →
-                          </div>
                         </div>
+                        <time
+                          dateTime={post.date}
+                          className="shrink-0 font-mono text-xs text-muted"
+                        >
+                          {post.date}
+                        </time>
                       </article>
                     </a>
                   );
