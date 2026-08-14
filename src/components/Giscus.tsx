@@ -51,6 +51,12 @@ const CYBER_CSS = `
 .gsc-reaction-button:hover { border-color: #00f0ff !important; }
 .gsc-header-text, .gsc-meta-text, .gsc-footer { color: #9a9ac0 !important; }
 .gsc-footer a, .gsc-meta-link { color: #00f0ff !important; }
+.gsc-login-button, .gsc-login-button-text {
+  background: #00f0ff !important;
+  color: #0d0d1a !important;
+  border-color: #00f0ff !important;
+  border-radius: 8px !important;
+}
 `;
 
 export default function Giscus({ repo }: { repo: string }) {
