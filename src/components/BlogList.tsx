@@ -126,7 +126,7 @@ export default function BlogList() {
                   return (
                     <a
                       key={post.id}
-                      href={`#/blog/${post.slug}`}
+                      href={`/blog/${post.slug}`}
                       className="group block"
                       aria-label={`阅读文章：${post.title}`}
                     >
@@ -227,7 +227,7 @@ export default function BlogList() {
               {visibleByAuthor.slice(0, 5).map((p) => (
                 <li key={p.id}>
                   <a
-                    href={`#/blog/${p.slug}`}
+                    href={`/blog/${p.slug}`}
                     className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
                   >
                     {p.title}

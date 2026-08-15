@@ -49,7 +49,7 @@ export type SkillGroup = {
 /** 博客文章 */
 export type Post = {
   id: string;
-  /** URL 短链，用于 #/blog/<slug>，须唯一 */
+  /** URL 短链，用于 /blog/<slug>，须唯一 */
   slug: string;
   title: string;
   /** 列表页摘要；留空则自动从正文截取 */

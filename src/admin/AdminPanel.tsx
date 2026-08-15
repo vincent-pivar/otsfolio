@@ -1211,7 +1211,7 @@ export default function AdminPanel() {
 
                       <div className="flex flex-wrap gap-3 border-t border-line pt-4">
                         <a
-                          href={`#/blog/${post.slug}`}
+                          href={`/blog/${post.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className="font-mono text-xs text-cyan hover:text-magenta"

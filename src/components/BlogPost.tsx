@@ -79,7 +79,7 @@ export default function BlogPost({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
   const shareUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/#/blog/${post.slug}`
+      ? `${window.location.origin}/blog/${post.slug}`
       : '';
   const shareTitle = post.title;
   const copyLink = async () => {
@@ -164,7 +164,7 @@ export default function BlogPost({ slug }: { slug: string }) {
               <div>
                 {older && (
                   <a
-                    href={`#/blog/${older.slug}`}
+                    href={`/blog/${older.slug}`}
                     className="group block"
                     aria-label={`上一篇：${older.title}`}
                   >
@@ -178,7 +178,7 @@ export default function BlogPost({ slug }: { slug: string }) {
               <div className="sm:text-right">
                 {newer && (
                   <a
-                    href={`#/blog/${newer.slug}`}
+                    href={`/blog/${newer.slug}`}
                     className="group block"
                     aria-label={`下一篇：${newer.title}`}
                   >
@@ -243,7 +243,7 @@ export default function BlogPost({ slug }: { slug: string }) {
                 .map((p) => (
                   <li key={p.id} className="border-b border-line pb-3 last:border-0 last:pb-0">
                     <a
-                      href={`#/blog/${p.slug}`}
+                      href={`/blog/${p.slug}`}
                       className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
                     >
                       {p.title}
@@ -264,7 +264,7 @@ export default function BlogPost({ slug }: { slug: string }) {
                 .map((p) => (
                   <li key={p.id}>
                     <a
-                      href={`#/blog/${p.slug}`}
+                      href={`/blog/${p.slug}`}
                       className="block break-words font-body text-sm text-slate-300 transition-colors hover:text-cyan"
                     >
                       {p.title}

@@ -28,7 +28,7 @@ export default function LatestPosts() {
       {/* 竖排：一排一个内容 */}
       <div className="mt-10 flex flex-col gap-6">
         {latest.map((post) => (
-          <a key={post.id} href={`#/blog/${post.slug}`} className="group block">
+          <a key={post.id} href={`/blog/${post.slug}`} className="group block">
             <article className="cyber-card overflow-hidden p-0 transition-transform duration-300 hover:-translate-y-1">
               {post.cover && (
                 <div className="overflow-hidden border-b border-line">
