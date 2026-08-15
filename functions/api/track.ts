@@ -56,13 +56,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     const country = (request.headers.get('cf-ipcountry') || 'XX').toUpperCase().slice(0, 2);
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || '0.0.0.0';
-    const ipHash = await sha256(ip + slug + dayStr());
+    // 访客级去重哈希（按 IP + 天，不含 slug），用于真实人数统计
+    const ipHash = await sha256(ip + dayStr());
+    // 记录级哈希（含 slug），用于同人同文同天只记一次浏览
+    const rowHash = await sha256(ip + slug + dayStr());
 
     // 去重：同 ip+slug+day 只记一次 view
     if (action === 'view') {
       const exist = await env.portfolio_content
-        .prepare('SELECT 1 FROM analytics WHERE ip_hash = ? AND action = ? LIMIT 1')
-        .bind(ipHash, 'view')
+        .prepare('SELECT 1 FROM analytics WHERE ip_hash = ? AND slug = ? AND day = ? AND action = ? LIMIT 1')
+        .bind(rowHash, slug, dayStr(), 'view')
         .first();
       if (exist) return json({ ok: true, dedup: true });
     }

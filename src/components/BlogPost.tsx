@@ -228,7 +228,7 @@ export default function BlogPost({ slug }: { slug: string }) {
             </a>
           </div>
 
-          {settings.commentsRepo && (
+          {settings.commentsEnabled !== false && (
             <Comments slug={post.slug} />
           )}
         </article>

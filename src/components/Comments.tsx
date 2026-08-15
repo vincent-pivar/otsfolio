@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSite } from '../hooks/useSite';
 
 interface Comment {
   id: number;
@@ -14,6 +15,9 @@ interface Comment {
  * 支持 emoji（直接输入）与表情包图片（粘贴 ![alt](https://图片地址) 格式）。
  */
 export default function Comments({ slug }: { slug: string }) {
+  const { settings } = useSite();
+  const maxImages = settings.maxImagesPerComment ?? 0;
+  const maxSizeKB = settings.maxImageSizeKB ?? 0;
   const [comments, setComments] = useState<Comment[]>([]);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
@@ -24,6 +28,8 @@ export default function Comments({ slug }: { slug: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [ok, setOk] = useState(false);
+
+  const countImages = (s: string) => (s.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g) || []).length;
 
   const loadCaptcha = async () => {
     try {
@@ -69,6 +75,12 @@ export default function Comments({ slug }: { slug: string }) {
       setError('请填写验证码');
       return;
     }
+    // 客户端软校验图片数（服务端也会强制）
+    const imgN = countImages(text);
+    if (maxImages > 0 && imgN > maxImages) {
+      setError(`每条评论最多 ${maxImages} 张图片（当前 ${imgN} 张）`);
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/comments', {
@@ -106,6 +118,12 @@ export default function Comments({ slug }: { slug: string }) {
       <p className="mb-4 font-mono text-xs text-muted">
         支持 emoji（输入 <span className="text-cyan">:smile:</span>）和表情包——直接粘贴{' '}
         <span className="text-cyan">![描述](图片地址)</span> 即可显示图片。
+        {(maxImages > 0 || maxSizeKB > 0) && (
+          <span className="ml-1 text-line">
+            （每评最多 {maxImages > 0 ? `${maxImages} 张图` : '不限张数'}
+            {maxSizeKB > 0 ? `，单图建议 ≤ ${maxSizeKB}KB` : ''}）
+          </span>
+        )}
       </p>
 
       {/* 评论表单 */}

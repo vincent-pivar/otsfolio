@@ -253,5 +253,10 @@ Pages Functions 天然分布式，出题请求就近处理。零服务器成本�
       '全栈开发者 Vincent 的作品集与技术博客。移动端原生、Web 全栈、AI 应用集成。',
     // 空值表示未设置口令，后台会提示设置
     adminPassHash: '',
+    // 自建 D1 评论系统默认配置
+    commentsEnabled: true,
+    maxCommentsPerPost: 200,
+    maxImagesPerComment: 3,
+    maxImageSizeKB: 512,
   },
 };

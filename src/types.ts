@@ -80,9 +80,26 @@ export type Settings = {
   adminPassHash: string;
   /**
    * Giscus 评论仓库（格式 owner/repo，须为公开仓库且已安装 Giscus App）。
-   * 留空则博客详情页不显示评论区。
+   * 自 v2 起评论改用自建 D1 系统，此字段已弃用，保留向后兼容。
    */
   commentsRepo?: string;
+  /**
+   * 是否开启评论（自建 D1 评论系统）。
+   */
+  commentsEnabled?: boolean;
+  /**
+   * 单篇文章最大评论数（0 或留空表示不限制）。
+   */
+  maxCommentsPerPost?: number;
+  /**
+   * 单条评论最大图片数（即 ![alt](url) 数量，0 或留空表示不限制）。
+   */
+  maxImagesPerComment?: number;
+  /**
+   * 单张图片建议大小上限（KB）。评论仅存图片链接，服务端无法校验远程图片体积，
+   * 此值为前端软提示（超出仅警告，不阻断）。
+   */
+  maxImageSizeKB?: number;
   /**
    * Cloudflare Turnstile 站点密钥。留空则后台登录不做真人验证（仅口令）。
    */

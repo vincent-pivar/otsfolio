@@ -16,9 +16,24 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** 服务端轻量净化 */
-function sanitizeText(s: string, max = 2000): string {
-  return s;
+/** 读取站点设置（与 content.ts 同库） */
+async function readSettings(env: Env): Promise<Record<string, unknown>> {
+  const r = await env.portfolio_content
+    .prepare('SELECT data FROM site WHERE id = ?')
+    .bind('1')
+    .first<{ data: string }>();
+  if (!r?.data) return {};
+  try {
+    return (JSON.parse(r.data) as { settings?: Record<string, unknown> }).settings || {};
+  } catch {
+    return {};
+  }
+}
+
+/** 统计文本中 ![alt](url) 图片数量 */
+function countImages(text: string): number {
+  const re = /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g;
+  return (text.match(re) || []).length;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -60,14 +75,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return json({ ok: false, error: '格式错误' }, 400);
     }
     const slug = (body.slug || '').trim();
-    const name = sanitizeText(body.name || '', 40) || '匿名访客';
-    const text = sanitizeText(body.body || '', 2000);
+    const name = (body.name || '').toString().trim().slice(0, 40) || '匿名访客';
+    const text = (body.body || '').toString().trim().slice(0, 2000);
     const token = (body.captchaToken || '').trim();
     const code = (body.captcha || '').trim().toUpperCase();
 
     if (!slug) return json({ ok: false, error: '缺少 slug' }, 400);
     if (text.length < 1) return json({ ok: false, error: '评论内容不能为空' }, 400);
     if (!token || !code) return json({ ok: false, error: '请填写验证码' }, 400);
+
+    // 评论总开关
+    const settings = await readSettings(env);
+    if (settings.commentsEnabled === false) {
+      return json({ ok: false, error: '评论已关闭' }, 403);
+    }
 
     // 校验验证码（从 D1 captcha 表）
     const cap = await env.portfolio_content
@@ -78,6 +99,27 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (cap.expires < Date.now()) return json({ ok: false, error: '验证码已过期，请刷新' }, 400);
     if (cap.code !== code) return json({ ok: false, error: '验证码错误' }, 400);
     await env.portfolio_content.prepare('DELETE FROM captcha WHERE token = ?').bind(token).run(); // 用完即删
+
+    // 每篇文章最大评论数
+    const maxPer = Number(settings.maxCommentsPerPost || 0);
+    if (maxPer > 0) {
+      const cnt = await env.portfolio_content
+        .prepare('SELECT COUNT(*) c FROM comments WHERE slug = ? AND status = ?')
+        .bind(slug, 'approved')
+        .first<{ c: number }>();
+      if (cnt && cnt.c >= maxPer) {
+        return json({ ok: false, error: `本篇文章评论已达上限（${maxPer} 条）` }, 429);
+      }
+    }
+
+    // 每条评论最大图片数
+    const maxImg = Number(settings.maxImagesPerComment || 0);
+    if (maxImg > 0) {
+      const imgCount = countImages(text);
+      if (imgCount > maxImg) {
+        return json({ ok: false, error: `每条评论最多 ${maxImg} 张图片` }, 400);
+      }
+    }
 
     // 10 秒限流
     const last = await env.portfolio_content

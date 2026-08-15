@@ -112,6 +112,34 @@ function SelectField({
   );
 }
 
+function NumberField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-xs font-mono tracking-wider text-slate-300 mb-1">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        min={0}
+        value={Number.isFinite(value) ? value : 0}
+        onChange={(e) => onChange(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+        className="w-full bg-void/60 border border-line px-3 py-2 text-slate-100 text-sm focus:border-cyan focus:outline-none focus:shadow-neon transition-all"
+      />
+    </div>
+  );
+}
+
 function StringListEditor({
   id,
   label,
@@ -1223,23 +1251,56 @@ export default function AdminPanel() {
             <section className="cyber-card p-5">
               <h2 className="section-label">评论与真人验证</h2>
               <div className="space-y-4">
-                <TextField
-                  id="comments-repo"
-                  label="Giscus 评论仓库（owner/repo，需公开且已装 Giscus App）"
-                  value={state.settings.commentsRepo ?? ''}
-                  onChange={(v) => updateSettings({ commentsRepo: v })}
-                  placeholder="vincent/portfolio-comments"
-                />
-                <TextField
-                  id="turnstile-key"
-                  label="Cloudflare Turnstile 站点密钥（留空则后台登录不做真人验证）"
-                  value={state.settings.turnstileSiteKey ?? ''}
-                  onChange={(v) => updateSettings({ turnstileSiteKey: v })}
-                  placeholder="0x4AAAAAAA..."
-                />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="comments-enabled" className="block text-xs font-mono tracking-wider text-slate-300">
+                      开启评论（自建 D1 评论系统）
+                    </label>
+                    <p className="mt-1 font-body text-xs text-muted">
+                      关闭后所有文章底部评论区隐藏，已发表评论保留。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ commentsEnabled: !state.settings.commentsEnabled })}
+                    className={`relative h-6 w-12 shrink-0 rounded-full border transition-colors ${
+                      state.settings.commentsEnabled ? 'border-cyan bg-cyan/30' : 'border-line bg-void/60'
+                    }`}
+                    aria-pressed={state.settings.commentsEnabled}
+                    aria-label="开启评论"
+                  >
+                    <span
+                      className={`absolute top-0.5 h-4 w-4 rounded-full transition-all ${
+                        state.settings.commentsEnabled ? 'left-7 bg-cyan' : 'left-0.5 bg-muted'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                  <NumberField
+                    id="max-comments"
+                    label="单篇文章最大评论数（0=不限制）"
+                    value={state.settings.maxCommentsPerPost ?? 0}
+                    onChange={(v) => updateSettings({ maxCommentsPerPost: v })}
+                  />
+                  <NumberField
+                    id="max-images"
+                    label="单条评论最大图片数（0=不限制）"
+                    value={state.settings.maxImagesPerComment ?? 0}
+                    onChange={(v) => updateSettings({ maxImagesPerComment: v })}
+                  />
+                  <NumberField
+                    id="max-img-size"
+                    label="单张图片建议大小上限（KB，前端软提示）"
+                    value={state.settings.maxImageSizeKB ?? 0}
+                    onChange={(v) => updateSettings({ maxImageSizeKB: v })}
+                  />
+                </div>
+
                 <p className="font-body text-xs text-muted">
-                  填好评论仓库后，每篇文章底部会出现 Giscus 评论区；填好 Turnstile 站点密钥后，
-                  后台登录会要求先过真人验证（私钥需通过 wrangler secret 注入到 Pages Function）。
+                  限制均在服务端强制（图片数/评论数/开关）；图片大小因评论仅存图片链接、服务端无法校验远程体积，
+                  仅作为前端软提示。数据存于 D1，避免滥用请配合图形验证码（已启用）。
                 </p>
               </div>
             </section>
