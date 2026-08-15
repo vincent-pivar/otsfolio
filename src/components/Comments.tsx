@@ -17,12 +17,29 @@ export default function Comments({ slug }: { slug: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [name, setName] = useState('');
   const [body, setBody] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [ok, setOk] = useState(false);
 
-  // 加载评论
+  const loadCaptcha = async () => {
+    try {
+      const r = await fetch('/api/captcha');
+      const d = await r.json();
+      if (d.ok) {
+        setCaptchaToken(d.token);
+        setCaptchaSvg(d.svg);
+        setCaptchaInput('');
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // 加载评论 + 验证码
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -33,9 +50,11 @@ export default function Comments({ slug }: { slug: string }) {
       })
       .catch(() => {})
       .finally(() => alive && setLoading(false));
+    loadCaptcha();
     return () => {
       alive = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const submit = async () => {
@@ -46,12 +65,22 @@ export default function Comments({ slug }: { slug: string }) {
       setError('说点什么再走？');
       return;
     }
+    if (!captchaInput.trim()) {
+      setError('请填写验证码');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ slug, name: name.trim(), body: text }),
+        body: JSON.stringify({
+          slug,
+          name: name.trim(),
+          body: text,
+          captchaToken,
+          captcha: captchaInput.trim(),
+        }),
       });
       const d = await res.json();
       if (d.ok) {
@@ -59,8 +88,10 @@ export default function Comments({ slug }: { slug: string }) {
         setBody('');
         setOk(true);
         setTimeout(() => setOk(false), 2500);
+        loadCaptcha(); // 刷新验证码
       } else {
         setError(d.error || '发送失败');
+        loadCaptcha(); // 验证码错/失效则换新
       }
     } catch {
       setError('网络错误，稍后再试');
@@ -94,6 +125,29 @@ export default function Comments({ slug }: { slug: string }) {
           placeholder="说点什么…"
           className="w-full resize-y border border-line bg-void px-3 py-2 font-mono text-sm text-slate-200 outline-none transition-colors focus:border-cyan"
         />
+        {/* 验证码 */}
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={loadCaptcha}
+            title="点击刷新验证码"
+            className="h-[52px] border border-line bg-void p-0 transition-colors hover:border-cyan"
+          >
+            {captchaSvg ? (
+              <img src={captchaSvg} alt="验证码" className="h-[52px] w-[140px]" />
+            ) : (
+              <span className="px-4 font-mono text-xs text-muted">加载中</span>
+            )}
+          </button>
+          <input
+            value={captchaInput}
+            onChange={(e) => setCaptchaInput(e.target.value.toUpperCase())}
+            maxLength={4}
+            placeholder="输入图中 4 位字符"
+            className="h-[52px] w-40 border border-line bg-void px-3 font-mono text-sm tracking-widest text-slate-200 outline-none transition-colors focus:border-cyan"
+          />
+          <span className="font-mono text-xs text-muted">点击图可刷新</span>
+        </div>
         <div className="mt-3 flex items-center justify-between">
           <span className="font-mono text-xs text-muted">
             {body.length}/2000

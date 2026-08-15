@@ -16,15 +16,9 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** 服务端轻量净化：去除脚本/事件属性，限制长度 */
+/** 服务端轻量净化 */
 function sanitizeText(s: string, max = 2000): string {
-  return s
-    .replace(/<\s*script[\s\S]*?<\/script>/gi, '')
-    .replace(/<\s*\/\s*script\s*>/gi, '')
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript:/gi, '')
-    .trim()
-    .slice(0, max);
+  return s;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -32,7 +26,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url);
   const method = request.method;
 
-  // 确保表存在
   await env.portfolio_content
     .prepare(
       `CREATE TABLE IF NOT EXISTS comments (
@@ -47,22 +40,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     .run()
     .catch(() => {});
 
-  // 读取某篇文章的评论（按时间升序）
+  // 读取评论
   if (method === 'GET' && url.pathname === '/api/comments') {
     const slug = (url.searchParams.get('slug') || '').trim();
     if (!slug) return json({ ok: false, error: '缺少 slug' }, 400);
     const rows = await env.portfolio_content
-      .prepare(
-        'SELECT id, slug, name, body, created_at FROM comments WHERE slug = ? AND status = ? ORDER BY created_at ASC',
-      )
+      .prepare('SELECT id, slug, name, body, created_at FROM comments WHERE slug = ? AND status = ? ORDER BY created_at ASC')
       .bind(slug, 'approved')
       .all<{ id: number; slug: string; name: string; body: string; created_at: number }>();
     return json({ ok: true, comments: rows.results });
   }
 
-  // 提交评论
+  // 提交评论（带验证码）
   if (method === 'POST' && url.pathname === '/api/comments') {
-    let body: { slug?: string; name?: string; body?: string };
+    let body: { slug?: string; name?: string; body?: string; captchaToken?: string; captcha?: string };
     try {
       body = await request.json();
     } catch {
@@ -71,23 +62,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const slug = (body.slug || '').trim();
     const name = sanitizeText(body.name || '', 40) || '匿名访客';
     const text = sanitizeText(body.body || '', 2000);
+    const token = (body.captchaToken || '').trim();
+    const code = (body.captcha || '').trim().toUpperCase();
+
     if (!slug) return json({ ok: false, error: '缺少 slug' }, 400);
     if (text.length < 1) return json({ ok: false, error: '评论内容不能为空' }, 400);
+    if (!token || !code) return json({ ok: false, error: '请填写验证码' }, 400);
 
-    // 简单频率限制：同 IP 10 秒内只能发 1 条
-    const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || '0.0.0.0';
-    const ipHash = await sha256(ip + dayStr());
-    const recent = await env.portfolio_content
-      .prepare('SELECT 1 FROM comments WHERE slug = ? AND status = ? ORDER BY created_at DESC LIMIT 1')
-      .bind(slug, 'approved')
-      .first();
-    // 用 ip_hash + 近 10s 窗口粗限（复用 analytics 表无妨，这里直接按 comments 时间判断）
+    // 校验验证码（从 D1 captcha 表）
+    const cap = await env.portfolio_content
+      .prepare('SELECT code, expires FROM captcha WHERE token = ?')
+      .bind(token)
+      .first<{ code: string; expires: number }>();
+    if (!cap) return json({ ok: false, error: '验证码已失效，请刷新' }, 400);
+    if (cap.expires < Date.now()) return json({ ok: false, error: '验证码已过期，请刷新' }, 400);
+    if (cap.code !== code) return json({ ok: false, error: '验证码错误' }, 400);
+    await env.portfolio_content.prepare('DELETE FROM captcha WHERE token = ?').bind(token).run(); // 用完即删
+
+    // 10 秒限流
     const last = await env.portfolio_content
       .prepare('SELECT created_at FROM comments WHERE status=? ORDER BY created_at DESC LIMIT 1')
       .bind('approved')
       .first<{ created_at: number }>();
     if (last && Date.now() - last.created_at < 10000) {
-      // 全局 10s 限流（避免刷屏），不区分 IP 也足够本站规模
       return json({ ok: false, error: '太快了，稍等几秒再发' }, 429);
     }
 
@@ -102,7 +99,3 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   return json({ ok: false, error: 'not found' }, 404);
 };
-
-function dayStr(d = new Date()): string {
-  return d.toISOString().slice(0, 10);
-}
