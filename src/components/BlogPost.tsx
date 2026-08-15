@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef, useState } from 'react';
 import { useSite } from '../hooks/useSite';
 import { renderMarkdown, readingTime } from '../markdown';
-import Giscus from './Giscus';
+import Comments from './Comments';
 
 const TRACK_URL = '/api/track';
 function track(slug: string, action: 'view' | 'read', duration = 0) {
@@ -229,7 +229,7 @@ export default function BlogPost({ slug }: { slug: string }) {
           </div>
 
           {settings.commentsRepo && (
-            <Giscus repo={settings.commentsRepo} />
+            <Comments slug={post.slug} />
           )}
         </article>
 
