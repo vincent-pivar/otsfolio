@@ -78,7 +78,7 @@ export default function SiteView() {
             GitHub ↗
           </a>
           <a
-            href="#/admin"
+            href="/admin"
             className="text-[10px] text-line transition-colors hover:text-cyan"
             title="内容管理"
           >

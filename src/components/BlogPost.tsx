@@ -35,7 +35,7 @@ export default function BlogPost({ slug }: { slug: string }) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center">
         <p className="text-muted">文章不存在或未发布</p>
-        <a href="#/blog" className="btn-neon mt-6 inline-block">
+        <a href="/blog" className="btn-neon mt-6 inline-block">
           返回博客
         </a>
       </div>
@@ -113,7 +113,7 @@ export default function BlogPost({ slug }: { slug: string }) {
         {/* 主列：竖排正文 */}
         <article className="min-w-0">
           <a
-            href="#/blog"
+            href="/blog"
             className="font-mono text-xs text-muted transition-colors hover:text-cyan"
           >
             ← 返回博客

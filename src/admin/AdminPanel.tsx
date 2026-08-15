@@ -609,9 +609,9 @@ export default function AdminPanel() {
       e.returnValue = '';
     };
     const onHashChange = () => {
-      if (window.location.hash.startsWith('#/admin')) return;
+      if (window.location.pathname.startsWith('/admin')) return;
       if (!window.confirm('有未保存的修改，确定离开后台？修改将丢失。')) {
-        window.location.hash = '#/admin';
+        window.history.pushState({}, '', '/admin');
       }
     };
 
@@ -1383,7 +1383,7 @@ export default function AdminPanel() {
                   type="button"
                   onClick={() => {
                     logout();
-                    window.location.hash = '#/';
+                    window.location.assign('/');
                   }}
                   className="border border-line px-4 py-2 font-mono text-xs text-muted transition-colors hover:border-cyan hover:text-cyan"
                 >

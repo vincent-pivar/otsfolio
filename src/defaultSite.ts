@@ -248,7 +248,7 @@ Pages Functions 天然分布式，出题请求就近处理。零服务器成本�
     },
   ],
   settings: {
-    siteTitle: 'Vincent — 全栈开发者 / 作品集',
+    siteTitle: 'otsfolio — Vincent 全栈开发者作品集',
     siteDescription:
       '全栈开发者 Vincent 的作品集与技术博客。移动端原生、Web 全栈、AI 应用集成。',
     // 空值表示未设置口令，后台会提示设置

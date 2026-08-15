@@ -20,7 +20,7 @@ export default function LatestPosts() {
             博客<span className="text-cyan neon-text">文章</span>
           </h2>
         </div>
-        <a href="#/blog" className="font-mono text-xs text-cyan transition-colors hover:text-magenta">
+        <a href="/blog" className="font-mono text-xs text-cyan transition-colors hover:text-magenta">
           查看全部 →
         </a>
       </div>

@@ -5,19 +5,29 @@ import { useSite } from '../hooks/useSite';
 export default function Nav() {
   const { profile } = useSite();
   const [open, setOpen] = useState(false);
-  const [hash, setHash] = useState(() => window.location.hash || '#/');
+  const [hash, setHash] = useState(() => {
+    const p = window.location.pathname.replace(/^\/+/, '');
+    return p ? `/${p}` : (window.location.hash || '#/');
+  });
 
-  // 监听 hash 变化，动态高亮当前所在导航项
+  // 监听路由变化（干净 URL 用 popstate，旧 hash 用 hashchange），动态高亮当前导航项
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash || '#/');
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const onRoute = () => {
+      const p = window.location.pathname.replace(/^\/+/, '');
+      setHash(p ? `/${p}` : (window.location.hash || '#/'));
+    };
+    window.addEventListener('hashchange', onRoute);
+    window.addEventListener('popstate', onRoute);
+    return () => {
+      window.removeEventListener('hashchange', onRoute);
+      window.removeEventListener('popstate', onRoute);
+    };
   }, []);
 
   const isActive = (n: (typeof nav)[number]) => {
     const cur = hash;
-    if (n.route) return cur.startsWith(n.route); // 博客：#/blog 任意子路由
-    return cur === `#${n.id}` || (n.id === 'hero' && (cur === '#/' || cur === ''));
+    if (n.route) return cur.startsWith(n.route); // 博客：/blog 任意子路由
+    return cur === `#${n.id}` || (n.id === 'hero' && (cur === '#/' || cur === '/' || cur === ''));
   };
 
   // 独立路由项（博客）优先展示，页内锚点跳过「首页」
@@ -35,7 +45,7 @@ export default function Nav() {
     <header className="fixed top-0 z-40 w-full border-b border-line bg-void/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <a
-          href="#/"
+          href="/"
           className="font-display text-lg font-black tracking-widest text-cyan neon-text"
         >
           {profile.name}

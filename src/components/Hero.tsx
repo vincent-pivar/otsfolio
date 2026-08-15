@@ -38,7 +38,7 @@ export default function Hero() {
             查看作品
           </a>
           <a
-            href="#/blog"
+            href="/blog"
             className="btn-neon border-cyan/60 text-cyan hover:bg-cyan hover:text-void hover:shadow-neon"
           >
             查看博客

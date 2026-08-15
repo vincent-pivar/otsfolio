@@ -140,7 +140,7 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         </form>
 
         <div className="mt-6 flex items-center justify-between font-mono text-xs">
-          <a href="#/" className="text-muted transition-colors hover:text-cyan">
+          <a href="/" className="text-muted transition-colors hover:text-cyan">
             ← 返回前台
           </a>
           {hasPass && (

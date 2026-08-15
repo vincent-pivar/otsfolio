@@ -65,7 +65,7 @@ export default function App() {
 
   // 路由切换后回到页首（锚点跳转除外）
   useEffect(() => {
-    if (!hash.startsWith('#/')) return;
+    if (hash.startsWith('#/')) return; // 旧 hash 形式不强制回顶
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [hash]);
 

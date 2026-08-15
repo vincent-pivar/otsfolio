@@ -121,7 +121,7 @@ export type NavItem = {
 };
 
 export const nav: NavItem[] = [
-  { id: 'blog', label: '博客', route: '#/blog' },
+  { id: 'blog', label: '博客', route: '/blog' },
   { id: 'hero', label: '首页' },
   { id: 'about', label: '关于' },
   { id: 'projects', label: '作品' },
