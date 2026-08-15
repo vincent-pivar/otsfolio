@@ -34,7 +34,7 @@ export default function Hero() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <a href="#projects" className="btn-neon">
+          <a href="/#projects" className="btn-neon">
             查看作品
           </a>
           <a
@@ -44,7 +44,7 @@ export default function Hero() {
             查看博客
           </a>
           <a
-            href="#contact"
+            href="/#contact"
             className="btn-neon border-magenta/60 text-magenta hover:bg-magenta hover:shadow-neon-magenta"
           >
             联系我

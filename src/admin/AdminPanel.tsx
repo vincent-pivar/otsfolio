@@ -963,7 +963,7 @@ export default function AdminPanel() {
             保存
           </button>
           <a
-            href="#/"
+            href="/"
             className="text-slate-300 hover:text-cyan text-xs font-mono border border-line px-3 py-2 transition-all"
           >
             返回前台

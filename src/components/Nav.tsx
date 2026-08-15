@@ -27,13 +27,13 @@ export default function Nav() {
   const isActive = (n: (typeof nav)[number]) => {
     const cur = hash;
     if (n.route) return cur.startsWith(n.route); // 博客：/blog 任意子路由
-    return cur === `#${n.id}` || (n.id === 'hero' && (cur === '#/' || cur === '/' || cur === ''));
+    return cur === `#${n.id}` || cur === `/#${n.id}` || (n.id === 'hero' && (cur === '#/' || cur === '/' || cur === ''));
   };
 
   // 独立路由项（博客）优先展示，页内锚点跳过「首页」
   const items = nav.filter((n) => n.route || n.id !== 'hero');
 
-  const hrefOf = (n: (typeof nav)[number]) => n.route ?? `#${n.id}`;
+  const hrefOf = (n: (typeof nav)[number]) => n.route ?? `/#${n.id}`;
 
   const linkCls = (n: (typeof nav)[number]) =>
     'font-mono text-xs uppercase tracking-widest transition-colors ' +

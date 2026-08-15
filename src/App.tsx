@@ -63,9 +63,17 @@ export default function App() {
 
   useDocumentMeta(meta);
 
-  // 路由切换后回到页首（锚点跳转除外）
+  // 路由切换后处理滚动：有锚点(#about)则滚到区块，否则回页首
   useEffect(() => {
-    if (hash.startsWith('#/')) return; // 旧 hash 形式不强制回顶
+    const anchor = window.location.hash;
+    if (anchor && !anchor.startsWith('#/') && anchor.length > 1) {
+      const el = document.getElementById(anchor.slice(1));
+      if (el) {
+        // 等首页内容渲染
+        setTimeout(() => el.scrollIntoView({ behavior: 'instant' as ScrollBehavior }), 50);
+        return;
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [hash]);
 
